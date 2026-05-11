@@ -31,6 +31,41 @@
 <body>
 
 <!-- ============================================================
+     STICKY SITE-HEADER (reveal nach Hero)
+     Erscheint sobald Hero aus dem Viewport gescrollt ist.
+     ============================================================ -->
+<header class="site-header" id="site-header" aria-hidden="true">
+  <div class="site-header-inner">
+    <a href="#top" aria-label="Zur Startseite">
+      <img src="assets/logo.png" alt="SPA Deluxe" class="logo" width="120" height="26" />
+    </a>
+
+    <div class="header-center">
+      <div class="reviews compact" aria-label="Google-Bewertungen: 4,9 von 5 Sternen aus über 500 Bewertungen">
+        <span class="stars" aria-hidden="true">
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </span>
+        <span class="rating">4,9</span>
+        <span class="count">· 500+ Bewertungen</span>
+      </div>
+    </div>
+
+    <div class="header-cta">
+      <!-- TODO Sergej: WhatsApp-Nummer einsetzen. Format wa.me/49XXXXXXXXXXX -->
+      <a href="https://wa.me/49000000000?text=Hallo%20SPA%20Deluxe%2C%20ich%20interessiere%20mich%20f%C3%BCr%20das%20Sorgenfrei-Refugium." class="btn btn-whatsapp" data-cta="header-whatsapp" target="_blank" rel="noopener">
+        <svg class="icon-wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        <span>WhatsApp</span>
+      </a>
+      <a href="#final-cta" class="btn btn-primary" data-cta="header-primary">Termin buchen</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================
      BLOCK 01 · Hook + Identification (HERO)
      CAPTURE — Aufmerksamkeit halten
      ============================================================ -->
@@ -51,15 +86,49 @@
     </p>
 
     <div class="trust-strip">
+      <div class="reviews" aria-label="Google-Bewertungen: 4,9 von 5 Sternen aus über 500 Bewertungen">
+        <span class="g-logo" aria-hidden="true"><span class="g"></span></span>
+        <span class="stars" aria-hidden="true">
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </span>
+        <span class="rating">4,9</span>
+        <span class="count">· 500+ Bewertungen</span>
+      </div>
       <span class="trust-pill"><span class="dot"></span> 9 Jahre am Markt</span>
       <span class="trust-pill"><span class="dot"></span> 6 Showrooms DACH</span>
-      <span class="trust-pill"><span class="dot"></span> DtGV ausgezeichnet</span>
       <span class="trust-pill"><span class="dot"></span> 60-Tage Probegarantie</span>
     </div>
 
     <div class="cta-row">
       <a href="#final-cta" class="btn btn-primary btn-arrow" data-cta="hero-primary">Termin im Showroom buchen</a>
       <a href="#offer" class="btn btn-secondary" data-cta="hero-secondary">Was es kostet ansehen</a>
+    </div>
+
+    <!-- Hero-Media: Video oder Bild -->
+    <div class="hero-media">
+      <div class="media-slot">
+        <!--
+          TODO Sergej: Hero-Video einsetzen.
+          Kandidat in /Users/sergej/Downloads/:
+          „Jacuzzi Whirlpools exklsuiv bei spadeluxe Header 2026 desktop 3.mp4"
+          → nach assets/hero-video.mp4 + assets/hero-poster.jpg verschieben
+        -->
+        <video
+          src="assets/hero-video.mp4"
+          poster="assets/hero-poster.jpg"
+          autoplay muted loop playsinline preload="metadata"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        ></video>
+        <div class="placeholder">
+          <div class="label">Hero-Video</div>
+          <div class="title">Whirlpool in Aktion · 16:9</div>
+          <div class="hint">assets/hero-video.mp4 + hero-poster.jpg</div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -176,6 +245,22 @@
     </div>
     <h2>Was den Whirlpool zum Familien-Mittelpunkt macht — und warum das nicht trivial ist.</h2>
 
+    <div class="mechanism-media">
+      <div class="media-slot tall">
+        <!--
+          TODO Sergej: Familien-Bild einsetzen.
+          → assets/mechanism-family.webp
+        -->
+        <img src="assets/mechanism-family.webp" alt="Familie im Whirlpool" loading="lazy"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+        <div class="placeholder">
+          <div class="label">Mechanism-Bild</div>
+          <div class="title">Familie im Whirlpool · 4:3</div>
+          <div class="hint">assets/mechanism-family.webp</div>
+        </div>
+      </div>
+    </div>
+
     <p>
       Ein Whirlpool ist nicht primär Wellness-Produkt. Das ist die häufigste
       Fehl-Annahme. Ein Whirlpool ist ein <strong>soziales Möbel</strong> mit
@@ -257,11 +342,37 @@
     </div>
 
     <div class="wrap" style="padding:0;">
+      <div class="reviews-block" aria-label="Google-Bewertungen: 4,9 von 5 Sternen aus über 500 Bewertungen">
+        <span class="big-rating">4,9</span>
+        <div>
+          <span class="big-stars" aria-hidden="true">
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </span>
+          <div class="info">
+            <strong>Über 500 Google-Bewertungen</strong>
+            <span>Durchschnitt 4,9 — quer durch 6 Showrooms</span>
+          </div>
+        </div>
+      </div>
+
       <div class="authority-strip">
-        <span class="trust-pill"><span class="dot"></span> DtGV-Ausgezeichnet</span>
         <span class="trust-pill"><span class="dot"></span> 9 Jahre am Markt</span>
         <span class="trust-pill"><span class="dot"></span> 6 Showrooms DACH</span>
         <span class="trust-pill"><span class="dot"></span> Über 4.000 verkaufte Whirlpools</span>
+      </div>
+
+      <div class="dtgv-strip">
+        <div class="dtgv-badge">
+          <img src="assets/dtgv-badge.svg" alt="Auszeichnung: 1. Platz Deutscher Kundenpreis Awards · DtGV — Kundenzufriedenheit Whirlpool-Handel" loading="lazy" />
+        </div>
+        <p class="dtgv-text">
+          <strong>1. Platz Kundenzufriedenheit Whirlpool-Handel.</strong>
+          Ausgezeichnet von der Deutschen Gesellschaft für Verbraucherstudien (DtGV).
+        </p>
       </div>
     </div>
   </div>
@@ -471,6 +582,22 @@
     <div class="offer-card">
       <div class="offer-label">Variante B · Mit Sauna</div>
       <h3>Sorgenfrei-Refugium</h3>
+
+      <div class="offer-media">
+        <div class="media-slot">
+          <!--
+            TODO Sergej: Produktbild Whirlpool + Sauna einsetzen.
+            → assets/offer-bundle.webp
+          -->
+          <img src="assets/offer-bundle.webp" alt="Sorgenfrei-Refugium Bundle: Whirlpool, Sauna, Cover-Lift" loading="lazy"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="placeholder">
+            <div class="label">Offer-Bild</div>
+            <div class="title">Whirlpool + Sauna im Garten · 16:9</div>
+            <div class="hint">assets/offer-bundle.webp</div>
+          </div>
+        </div>
+      </div>
 
       <ul class="offer-list">
         <li><span class="check">✓</span> Premium-Whirlpool (Vortex Mercury oder vergleichbares Modell)</li>
@@ -743,18 +870,22 @@
      FOOTER
      ============================================================ -->
 <footer class="site-footer">
-  <div class="wrap">
-    Sergej Markwart · SPA Deluxe GmbH · Bauherr Pilot-Page · Mai 2026
+  <div class="wrap" style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;">
+    <img src="assets/logo.png" alt="SPA Deluxe" style="height:22px;width:auto;filter:brightness(0) invert(1);opacity:0.6;" />
+    <span>· SPA Deluxe GmbH · Bauherr Pilot-Page · Mai 2026</span>
   </div>
 </footer>
 
 <!-- ============================================================
-     STICKY-CTA-BAR (Mobile only)
+     STICKY-CTA-BAR (Mobile only — Bottom)
      ============================================================ -->
 <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
   <div class="cta-row">
+    <!-- TODO Sergej: WhatsApp-Nummer einsetzen -->
+    <a href="https://wa.me/49000000000?text=Hallo%20SPA%20Deluxe%2C%20ich%20interessiere%20mich%20f%C3%BCr%20das%20Sorgenfrei-Refugium." class="btn btn-whatsapp" data-cta="sticky-whatsapp" target="_blank" rel="noopener" aria-label="WhatsApp Chat">
+      <svg class="icon-wa" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.149-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </a>
     <a href="#final-cta" class="btn btn-primary" data-cta="sticky-primary">Termin buchen</a>
-    <a href="#final-cta" class="btn btn-secondary" data-cta="sticky-secondary">Rückruf</a>
   </div>
 </div>
 

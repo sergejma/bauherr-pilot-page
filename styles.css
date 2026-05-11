@@ -16,6 +16,10 @@
   --color-slate-dark: #1F3754;
   --color-slate-bg: #EDF1F6;
   --color-success: #4A7C3E;
+  --color-action: #E8551A;       /* Signal-Orange, primärer Action-Button */
+  --color-action-dark: #C8460F;
+  --color-action-bg: #FDEFE8;
+  --color-gold: #F5A623;          /* Google-Sterne */
 
   /* Layout */
   --content-max: 720px;
@@ -112,6 +116,7 @@ a:hover { text-decoration: underline; }
 section {
   padding: var(--section-pad-y) 0;
   position: relative;
+  scroll-margin-top: 80px;
 }
 section.alt {
   background: var(--color-sand);
@@ -226,18 +231,306 @@ section.alt {
 .btn:hover { text-decoration: none; transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
 .btn-primary {
-  background: var(--color-slate);
+  background: var(--color-action);
   color: #fff;
-  border-color: var(--color-slate);
+  border-color: var(--color-action);
+  box-shadow: 0 4px 14px -4px rgba(232, 85, 26, 0.5);
 }
-.btn-primary:hover { background: var(--color-slate-dark); border-color: var(--color-slate-dark); }
+.btn-primary:hover {
+  background: var(--color-action-dark);
+  border-color: var(--color-action-dark);
+  box-shadow: 0 6px 18px -4px rgba(232, 85, 26, 0.6);
+}
 .btn-secondary {
   background: transparent;
   color: var(--color-slate);
   border: 1.5px solid var(--color-slate);
 }
 .btn-secondary:hover { background: var(--color-slate-bg); }
+
+/* Slate-Variante für Buttons, die nicht der Haupt-CTA sind */
+.btn-slate {
+  background: var(--color-slate);
+  color: #fff;
+  border-color: var(--color-slate);
+}
+.btn-slate:hover { background: var(--color-slate-dark); border-color: var(--color-slate-dark); }
+
+/* WhatsApp-Variante */
+.btn-whatsapp {
+  background: #25D366;
+  color: #fff;
+  border-color: #25D366;
+}
+.btn-whatsapp:hover { background: #1FAD55; border-color: #1FAD55; }
+
 .btn-arrow::after { content: " →"; }
+
+/* ---------- Sticky Site-Header (reveal nach Hero) ---------- */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--color-sand-dark);
+  transform: translateY(-100%);
+  transition: transform 0.35s var(--ease-out);
+}
+.site-header.visible { transform: translateY(0); }
+.site-header-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  min-height: 64px;
+}
+.site-header .logo {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+.site-header .header-center {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.site-header .header-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.site-header .btn {
+  min-height: 42px;
+  padding: 10px 18px;
+  font-size: 14px;
+  width: auto;
+}
+.site-header .btn-whatsapp .icon-wa {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+}
+@media (max-width: 767px) {
+  .site-header-inner {
+    padding: 0.6rem 1rem;
+    min-height: 56px;
+    gap: 0.5rem;
+  }
+  .site-header .logo { height: 22px; }
+  .site-header .header-center { display: none; }
+  .site-header .btn-whatsapp span:not(.icon-wa) { display: none; }
+  .site-header .btn-whatsapp { padding: 10px 12px; }
+}
+
+/* ---------- Google Reviews Block ---------- */
+.reviews {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--color-cream);
+  border: 1px solid var(--color-sand-dark);
+  border-radius: 999px;
+  padding: 6px 14px 6px 10px;
+  font-size: 14px;
+}
+.reviews.compact { padding: 4px 12px 4px 8px; font-size: 13px; }
+.reviews .stars {
+  display: inline-flex;
+  gap: 1px;
+}
+.reviews .star {
+  width: 16px;
+  height: 16px;
+  color: var(--color-gold);
+  display: block;
+}
+.reviews.compact .star { width: 14px; height: 14px; }
+.reviews .rating {
+  font-weight: 700;
+  color: var(--color-ink);
+  font-feature-settings: "tnum";
+}
+.reviews .count {
+  color: var(--color-stone);
+  font-size: 13px;
+}
+.reviews .g-logo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-stone);
+}
+.reviews .g-logo .g {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: conic-gradient(from -45deg, #4285F4 0deg 90deg, #34A853 90deg 180deg, #FBBC05 180deg 270deg, #EA4335 270deg 360deg);
+  position: relative;
+  display: inline-block;
+}
+.reviews .g-logo .g::after {
+  content: "G";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: #fff;
+  font-weight: 800;
+}
+
+.reviews-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--color-cream);
+  border: 1px solid var(--color-sand-dark);
+  border-radius: 12px;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+section.alt .reviews-block { background: #fff; }
+.reviews-block .big-rating {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink);
+  font-feature-settings: "tnum";
+}
+.reviews-block .big-stars { display: inline-flex; gap: 2px; }
+.reviews-block .big-stars .star { width: 22px; height: 22px; color: var(--color-gold); }
+.reviews-block .info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: var(--color-stone);
+}
+.reviews-block .info strong { color: var(--color-ink); font-weight: 600; font-size: 15px; }
+
+/* ---------- DtGV-Siegel ---------- */
+.dtgv-badge {
+  display: inline-block;
+  height: auto;
+  max-width: 240px;
+}
+.dtgv-badge img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.dtgv-strip {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 2rem 0 0;
+  flex-wrap: wrap;
+}
+.dtgv-strip .dtgv-badge { max-width: 200px; }
+.dtgv-strip .dtgv-text {
+  font-size: 14px;
+  color: var(--color-stone);
+  line-height: 1.4;
+  max-width: 32ch;
+}
+.dtgv-strip .dtgv-text strong { color: var(--color-ink); }
+
+/* ---------- Media Slots (Hero-Video, Bilder) ---------- */
+.media-slot {
+  position: relative;
+  width: 100%;
+  background: var(--color-sand);
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-sand-dark);
+}
+.media-slot.tall { aspect-ratio: 4 / 3; }
+.media-slot.portrait { aspect-ratio: 3 / 4; }
+.media-slot img,
+.media-slot video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.media-slot .placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, var(--color-sand) 0%, var(--color-sand-dark) 100%);
+  color: var(--color-stone);
+}
+.media-slot .placeholder .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--color-stone);
+  margin-bottom: 0.4rem;
+}
+.media-slot .placeholder .title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 0.25rem;
+}
+.media-slot .placeholder .hint {
+  font-size: 13px;
+  color: var(--color-stone);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.hero-media {
+  margin-top: 2.5rem;
+  max-width: var(--content-wide);
+}
+.hero-media .media-slot {
+  border-radius: 16px;
+  box-shadow: 0 20px 60px -20px rgba(26, 26, 26, 0.18);
+}
+
+.mechanism-media {
+  margin: 2rem 0 1rem;
+}
+.offer-card .offer-media {
+  margin: 0 0 2rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.offer-card .offer-media .media-slot {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+.offer-card .offer-media .placeholder {
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+  color: rgba(255,255,255,0.7);
+}
+.offer-card .offer-media .placeholder .title { color: #fff; }
+.offer-card .offer-media .placeholder .label,
+.offer-card .offer-media .placeholder .hint { color: rgba(255,255,255,0.6); }
 
 /* ---------- Block 02 · Pain ---------- */
 .pain-prose p {
@@ -829,9 +1122,13 @@ section.alt .variant-a-note { background: var(--color-cream); }
 }
 .sticky-cta .btn {
   flex: 1;
-  min-height: 44px;
-  padding: 10px 14px;
-  font-size: 14px;
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 15px;
+  width: auto;
+}
+.sticky-cta .btn-primary {
+  box-shadow: 0 4px 14px -4px rgba(232, 85, 26, 0.7);
 }
 .sticky-cta .btn-secondary {
   background: transparent;
@@ -839,6 +1136,13 @@ section.alt .variant-a-note { background: var(--color-cream); }
   border-color: rgba(255,255,255,0.4);
 }
 .sticky-cta .btn-secondary:hover { background: rgba(255,255,255,0.08); }
+.sticky-cta .btn-whatsapp {
+  flex-shrink: 0;
+  flex: 0 0 auto;
+  padding: 12px 14px;
+  min-width: 48px;
+}
+.sticky-cta .btn-whatsapp .icon-wa { width: 18px; height: 18px; }
 
 /* ---------- Mobile ---------- */
 @media (max-width: 767px) {

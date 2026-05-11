@@ -21,20 +21,31 @@
     });
   });
 
-  // ---------- Sticky-CTA-Bar (Mobile) ----------
+  // ---------- Sticky Site-Header (Top) + Sticky-CTA-Bar (Bottom Mobile) ----------
+  const siteHeader = document.getElementById('site-header');
   const stickyCta = document.getElementById('sticky-cta');
   const hero = document.querySelector('.hero');
   const finalCta = document.getElementById('final-cta');
 
-  if (stickyCta && hero && finalCta) {
+  if (hero && finalCta) {
     const update = () => {
       const heroBottom = hero.getBoundingClientRect().bottom;
       const finalTop = finalCta.getBoundingClientRect().top;
       const viewportH = window.innerHeight;
-      // Sichtbar wenn Hero raus und Final-CTA noch nicht oben angekommen
-      const visible = heroBottom < 0 && finalTop > viewportH * 0.5;
-      stickyCta.classList.toggle('visible', visible);
-      stickyCta.setAttribute('aria-hidden', String(!visible));
+
+      // Top-Header: sichtbar sobald Hero zu ~70% raus ist
+      if (siteHeader) {
+        const headerVisible = heroBottom < viewportH * 0.3;
+        siteHeader.classList.toggle('visible', headerVisible);
+        siteHeader.setAttribute('aria-hidden', String(!headerVisible));
+      }
+
+      // Bottom-Sticky: sichtbar wenn Hero komplett raus und Final-CTA noch nicht oben
+      if (stickyCta) {
+        const ctaVisible = heroBottom < 0 && finalTop > viewportH * 0.5;
+        stickyCta.classList.toggle('visible', ctaVisible);
+        stickyCta.setAttribute('aria-hidden', String(!ctaVisible));
+      }
     };
     update();
     let ticking = false;
