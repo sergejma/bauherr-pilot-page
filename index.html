@@ -108,22 +108,18 @@
       <a href="#offer" class="btn btn-secondary" data-cta="hero-secondary">Was es kostet ansehen</a>
     </div>
 
-    <!-- Hero-Media: Video oder Bild -->
+    <!-- Hero-Media: Video Desktop/Mobile via JS-Switch -->
     <div class="hero-media">
       <div class="media-slot">
-        <!--
-          TODO Sergej: Hero-Video einsetzen.
-          Kandidat in /Users/sergej/Downloads/:
-          „Jacuzzi Whirlpools exklsuiv bei spadeluxe Header 2026 desktop 3.mp4"
-          → nach assets/hero-video.mp4 + assets/hero-poster.jpg verschieben
-        -->
         <video
-          src="assets/hero-video.mp4"
+          id="hero-video"
+          data-src-desktop="assets/hero-video.mp4"
+          data-src-mobile="assets/hero-video-mobile.mp4"
           poster="assets/hero-poster.jpg"
           autoplay muted loop playsinline preload="metadata"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         ></video>
-        <div class="placeholder">
+        <div class="placeholder" style="display:none;">
           <div class="label">Hero-Video</div>
           <div class="title">Whirlpool in Aktion · 16:9</div>
           <div class="hint">assets/hero-video.mp4 + hero-poster.jpg</div>
@@ -246,17 +242,13 @@
     <h2>Was den Whirlpool zum Familien-Mittelpunkt macht — und warum das nicht trivial ist.</h2>
 
     <div class="mechanism-media">
-      <div class="media-slot tall">
-        <!--
-          TODO Sergej: Familien-Bild einsetzen.
-          → assets/mechanism-family.webp
-        -->
-        <img src="assets/mechanism-family.webp" alt="Familie im Whirlpool" loading="lazy"
+      <div class="media-slot">
+        <img src="assets/mechanism-family.jpg" alt="Innere Balance: Mutter im Whirlpool, Familie im Wohnzimmer sichtbar" loading="lazy"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-        <div class="placeholder">
+        <div class="placeholder" style="display:none;">
           <div class="label">Mechanism-Bild</div>
-          <div class="title">Familie im Whirlpool · 4:3</div>
-          <div class="hint">assets/mechanism-family.webp</div>
+          <div class="title">Familie im Whirlpool · 16:9</div>
+          <div class="hint">assets/mechanism-family.jpg</div>
         </div>
       </div>
     </div>
