@@ -441,8 +441,12 @@ section.alt .reviews-block { background: #fff; }
   background: var(--color-ink);
   color: rgba(255, 255, 255, 0.92);
   border-radius: 12px;
-  padding: 2rem 1.75rem;
+  padding: 1.75rem 1.75rem 1rem;
   text-align: center;
+}
+.awards-block .awards-text {
+  max-width: 56ch;
+  margin: 0 auto 1rem;
 }
 .awards-block .awards-eyebrow {
   font-family: 'JetBrains Mono', monospace;
@@ -450,42 +454,36 @@ section.alt .reviews-block { background: #fff; }
   letter-spacing: 1.8px;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 .awards-block h3 {
   color: #fff;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 .awards-block .awards-sub {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.5;
-  margin-bottom: 1.75rem;
-  max-width: 56ch;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0;
 }
 .awards-block .awards-image {
   width: 100%;
-  max-width: 920px;
+  max-width: 880px;
   margin: 0 auto;
   display: block;
+  line-height: 0;
 }
 .awards-block .awards-image img {
   width: 100%;
   height: auto;
   display: block;
 }
-.awards-block .awards-foot {
-  margin-top: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
+@media (max-width: 767px) {
+  .awards-block { padding: 1.25rem 1rem 0.75rem; }
+  .awards-block h3 { font-size: 19px; }
 }
 
 /* ---------- Media Slots (Hero-Video, Bilder) ---------- */
