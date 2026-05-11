@@ -22,6 +22,21 @@
     }
   }
 
+  // ---------- Sound-Toggle ----------
+  const soundToggle = document.getElementById('sound-toggle');
+  if (soundToggle && heroVideo) {
+    soundToggle.addEventListener('click', () => {
+      heroVideo.muted = !heroVideo.muted;
+      const unmuted = !heroVideo.muted;
+      soundToggle.classList.toggle('unmuted', unmuted);
+      soundToggle.setAttribute('aria-pressed', String(unmuted));
+      soundToggle.setAttribute('aria-label', unmuted ? 'Ton ausschalten' : 'Ton einschalten');
+      soundToggle.setAttribute('title', unmuted ? 'Ton ausschalten' : 'Ton einschalten');
+      // Wenn vom Browser pausiert: anstoßen
+      heroVideo.play().catch(() => {});
+    });
+  }
+
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach((item) => {
