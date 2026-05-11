@@ -662,6 +662,14 @@ section.alt .false-card { background: #fff; }
 }
 
 /* ---------- Block 04 · Mechanism ---------- */
+.mechanism-media {
+  margin: 1.5rem 0 1.75rem;
+}
+.mechanism-media .media-slot {
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+}
+
 .mechanism-list {
   list-style: none;
   padding: 0;

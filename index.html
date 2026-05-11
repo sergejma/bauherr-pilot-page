@@ -251,13 +251,12 @@
 
     <div class="mechanism-media">
       <div class="media-slot">
-        <img src="assets/mechanism-family.jpg" alt="Innere Balance: Mutter im Whirlpool, Familie im Wohnzimmer sichtbar" loading="lazy"
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-        <div class="placeholder" style="display:none;">
-          <div class="label">Mechanism-Bild</div>
-          <div class="title">Familie im Whirlpool · 16:9</div>
-          <div class="hint">assets/mechanism-family.jpg</div>
-        </div>
+        <picture>
+          <source media="(max-width: 767px)" type="image/webp" srcset="assets/mechanism-family-mobile.webp" />
+          <source media="(max-width: 767px)" type="image/jpeg" srcset="assets/mechanism-family-mobile.jpg" />
+          <source type="image/webp" srcset="assets/mechanism-family.webp" />
+          <img src="assets/mechanism-family.jpg" alt="Drei Generationen im Whirlpool: Großmutter, Vater und zwei Kinder spielen lachend mit Wasser bei Sonnenuntergang" width="1400" height="1045" loading="lazy" decoding="async" />
+        </picture>
       </div>
     </div>
 
