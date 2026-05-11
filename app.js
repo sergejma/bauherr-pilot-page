@@ -9,16 +9,6 @@
 (() => {
   'use strict';
 
-  // ---------- Hero-Video: Desktop vs. Mobile Source ----------
-  const heroVideo = document.getElementById('hero-video');
-  if (heroVideo) {
-    const desktopSrc = heroVideo.dataset.srcDesktop;
-    const mobileSrc = heroVideo.dataset.srcMobile;
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    const src = isMobile && mobileSrc ? mobileSrc : desktopSrc;
-    if (src) heroVideo.src = src;
-  }
-
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach((item) => {
