@@ -620,6 +620,14 @@ section.alt .reviews-block { background: #fff; }
   margin: 2rem 0;
 }
 
+.pain-media {
+  margin: 2rem 0 2rem;
+}
+.pain-media .media-slot {
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+}
+
 /* ---------- Block 03 · False Solutions ---------- */
 .false-grid {
   display: grid;
