@@ -256,31 +256,48 @@ section.alt {
 }
 .btn-slate:hover { background: var(--color-slate-dark); border-color: var(--color-slate-dark); }
 
-/* WhatsApp-Variante */
-.btn-whatsapp {
-  background: #25D366;
+/* Phone-Call-Variante (outline auf dunklem Header) */
+.btn-call {
+  background: transparent;
   color: #fff;
-  border-color: #25D366;
+  border-color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
 }
-.btn-whatsapp:hover { background: #1FAD55; border-color: #1FAD55; }
+.btn-call:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255,255,255,0.6); }
+.btn-call .icon-phone {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+}
 
 .btn-arrow::after { content: " →"; }
 
-/* ---------- Sticky Site-Header (reveal nach Hero) ---------- */
+/* ---------- Sticky Site-Header (reveal nach Hero, DARK) ---------- */
 .site-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 60;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--color-sand-dark);
+  background: rgba(20, 20, 20, 0.92);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   transform: translateY(-100%);
   transition: transform 0.35s var(--ease-out);
 }
 .site-header.visible { transform: translateY(0); }
+
+/* Reviews-Chip im dunklen Header: heller Stil */
+.site-header .reviews {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+}
+.site-header .reviews .rating { color: #fff; }
+.site-header .reviews .count { color: rgba(255, 255, 255, 0.65); }
+.site-header .reviews .g-logo { color: rgba(255, 255, 255, 0.7); }
 .site-header-inner {
   max-width: 1180px;
   margin: 0 auto;
@@ -315,12 +332,6 @@ section.alt {
   font-size: 14px;
   width: auto;
 }
-.site-header .btn-whatsapp .icon-wa {
-  width: 18px;
-  height: 18px;
-  display: inline-block;
-  vertical-align: middle;
-}
 @media (max-width: 767px) {
   .site-header-inner {
     padding: 0.6rem 1rem;
@@ -329,8 +340,8 @@ section.alt {
   }
   .site-header .logo { height: 22px; }
   .site-header .header-center { display: none; }
-  .site-header .btn-whatsapp span:not(.icon-wa) { display: none; }
-  .site-header .btn-whatsapp { padding: 10px 12px; }
+  .site-header .btn-call span.btn-call-text { display: none; }
+  .site-header .btn-call { padding: 10px 12px; min-width: 44px; }
 }
 
 /* ---------- Google Reviews Block ---------- */
@@ -424,32 +435,58 @@ section.alt .reviews-block { background: #fff; }
 }
 .reviews-block .info strong { color: var(--color-ink); font-weight: 600; font-size: 15px; }
 
-/* ---------- DtGV-Siegel ---------- */
-.dtgv-badge {
-  display: inline-block;
-  height: auto;
-  max-width: 240px;
+/* ---------- DtGV-Auszeichnungen (6-Jahre-Strip) ---------- */
+.awards-block {
+  margin: 2.5rem 0 0;
+  background: var(--color-ink);
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  padding: 2rem 1.75rem;
+  text-align: center;
 }
-.dtgv-badge img {
+.awards-block .awards-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.5rem;
+}
+.awards-block h3 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+}
+.awards-block .awards-sub {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 1.75rem;
+  max-width: 56ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.awards-block .awards-image {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  display: block;
+}
+.awards-block .awards-image img {
   width: 100%;
   height: auto;
   display: block;
 }
-.dtgv-strip {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin: 2rem 0 0;
-  flex-wrap: wrap;
+.awards-block .awards-foot {
+  margin-top: 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
 }
-.dtgv-strip .dtgv-badge { max-width: 200px; }
-.dtgv-strip .dtgv-text {
-  font-size: 14px;
-  color: var(--color-stone);
-  line-height: 1.4;
-  max-width: 32ch;
-}
-.dtgv-strip .dtgv-text strong { color: var(--color-ink); }
 
 /* ---------- Media Slots (Hero-Video, Bilder) ---------- */
 .media-slot {
@@ -1136,13 +1173,17 @@ section.alt .variant-a-note { background: var(--color-cream); }
   border-color: rgba(255,255,255,0.4);
 }
 .sticky-cta .btn-secondary:hover { background: rgba(255,255,255,0.08); }
-.sticky-cta .btn-whatsapp {
+.sticky-cta .btn-call {
   flex-shrink: 0;
   flex: 0 0 auto;
   padding: 12px 14px;
   min-width: 48px;
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255,255,255,0.4);
 }
-.sticky-cta .btn-whatsapp .icon-wa { width: 18px; height: 18px; }
+.sticky-cta .btn-call:hover { background: rgba(255,255,255,0.08); }
+.sticky-cta .btn-call .icon-phone { width: 18px; height: 18px; }
 
 /* ---------- Mobile ---------- */
 @media (max-width: 767px) {
