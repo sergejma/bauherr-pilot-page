@@ -566,9 +566,9 @@ section.alt .reviews-block { background: #fff; }
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
     gap: 3.5rem;
   }
-  .hero-grid .hero-media .media-slot {
-    aspect-ratio: 16 / 10;
-  }
+}
+.hero-grid .hero-media .media-slot {
+  aspect-ratio: 4 / 3;
 }
 @media (max-width: 899px) {
   .hero-grid .hero-media { margin-top: 1.5rem; }

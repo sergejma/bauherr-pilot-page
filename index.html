@@ -110,17 +110,15 @@
         </div>
       </div>
 
-      <!-- Hero-Media: self-hosted Video, click-to-play -->
+      <!-- Hero-Media: Bild (WebP + JPG-Fallback, Mobile-Variante) -->
       <div class="hero-media">
         <div class="media-slot">
-          <video
-            id="hero-video"
-            data-src-desktop="assets/hero.mp4"
-            data-src-mobile="assets/hero-mobile.mp4"
-            poster="assets/hero-poster.jpg"
-            controls playsinline preload="metadata"
-            aria-label="SPA Deluxe Showroom-Tour"
-          ></video>
+          <picture>
+            <source media="(max-width: 767px)" type="image/webp" srcset="assets/hero-mobile.webp" />
+            <source media="(max-width: 767px)" type="image/jpeg" srcset="assets/hero-mobile.jpg" />
+            <source type="image/webp" srcset="assets/hero.webp" />
+            <img src="assets/hero.jpg" alt="Paar im Whirlpool bei Sonnenuntergang, Kerzen am Rand" width="1600" height="1195" loading="eager" decoding="async" fetchpriority="high" />
+          </picture>
         </div>
       </div>
     </div>
