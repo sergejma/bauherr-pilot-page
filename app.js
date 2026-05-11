@@ -9,32 +9,14 @@
 (() => {
   'use strict';
 
-  // ---------- Hero-Video: Desktop vs. Mobile Source ----------
+  // ---------- Hero-Video: Desktop vs. Mobile Source (click-to-play) ----------
   const heroVideo = document.getElementById('hero-video');
   if (heroVideo) {
     const desktopSrc = heroVideo.dataset.srcDesktop;
     const mobileSrc = heroVideo.dataset.srcMobile;
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const src = isMobile && mobileSrc ? mobileSrc : desktopSrc;
-    if (src) {
-      heroVideo.src = src;
-      heroVideo.play().catch(() => { /* autoplay-Block, ignorieren */ });
-    }
-  }
-
-  // ---------- Sound-Toggle ----------
-  const soundToggle = document.getElementById('sound-toggle');
-  if (soundToggle && heroVideo) {
-    soundToggle.addEventListener('click', () => {
-      heroVideo.muted = !heroVideo.muted;
-      const unmuted = !heroVideo.muted;
-      soundToggle.classList.toggle('unmuted', unmuted);
-      soundToggle.setAttribute('aria-pressed', String(unmuted));
-      soundToggle.setAttribute('aria-label', unmuted ? 'Ton ausschalten' : 'Ton einschalten');
-      soundToggle.setAttribute('title', unmuted ? 'Ton ausschalten' : 'Ton einschalten');
-      // Wenn vom Browser pausiert: anstoßen
-      heroVideo.play().catch(() => {});
-    });
+    if (src) heroVideo.src = src;
   }
 
   // ---------- FAQ-Akkordeon ----------

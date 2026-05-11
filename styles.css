@@ -546,46 +546,6 @@ section.alt .reviews-block { background: #fff; }
   box-shadow: 0 20px 60px -20px rgba(26, 26, 26, 0.18);
 }
 
-/* Sound-Toggle in der Video-Ecke */
-.sound-toggle {
-  position: absolute;
-  bottom: 14px;
-  right: 14px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(20, 20, 20, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2;
-  transition: background 0.15s, transform 0.15s, border-color 0.15s;
-  padding: 0;
-}
-.sound-toggle:hover {
-  background: rgba(232, 85, 26, 0.92);
-  border-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.06);
-}
-.sound-toggle svg {
-  width: 20px;
-  height: 20px;
-  display: block;
-  pointer-events: none;
-}
-.sound-toggle .icon-unmuted { display: none; }
-.sound-toggle.unmuted .icon-muted { display: none; }
-.sound-toggle.unmuted .icon-unmuted { display: block; }
-@media (max-width: 767px) {
-  .sound-toggle { width: 40px; height: 40px; bottom: 10px; right: 10px; }
-  .sound-toggle svg { width: 18px; height: 18px; }
-}
-
 /* Hero-Split-Layout: Desktop = Text links, Video rechts · Mobile = stacked */
 .hero-wrap {
   width: 100%;
