@@ -3,3 +3,7 @@
 .idea/
 node_modules/
 *.log
+
+# Master-Videos (für ffmpeg-Re-Encoding lokal vorhalten, nicht im Repo)
+assets/hero-source.mp4
+assets/*.source.mp4

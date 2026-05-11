@@ -110,17 +110,17 @@
         </div>
       </div>
 
-      <!-- Hero-Media: YouTube-Embed (Desktop rechts, Mobile drunter) -->
+      <!-- Hero-Media: self-hosted Video (Desktop rechts, Mobile drunter) -->
       <div class="hero-media">
         <div class="media-slot">
-          <iframe
-            src="https://www.youtube-nocookie.com/embed/NuOKTxemw-U?autoplay=1&mute=1&controls=0&loop=1&playlist=NuOKTxemw-U&modestbranding=1&playsinline=1&rel=0&iv_load_policy=3"
-            title="SPA Deluxe — Whirlpool im Garten"
-            loading="eager"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowfullscreen
-            referrerpolicy="strict-origin-when-cross-origin"
-          ></iframe>
+          <video
+            id="hero-video"
+            data-src-desktop="assets/hero.mp4"
+            data-src-mobile="assets/hero-mobile.mp4"
+            poster="assets/hero-poster.jpg"
+            autoplay muted loop playsinline preload="metadata"
+            aria-label="SPA Deluxe Hero-Video"
+          ></video>
         </div>
       </div>
     </div>
