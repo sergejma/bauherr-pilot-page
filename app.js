@@ -72,13 +72,9 @@
       loadHubSpotMeetings(meetingUrl, showroomName);
       stepShowroom.hidden = true;
       stepMeeting.hidden = false;
-      // CTA-Tracking-Hook
       console.log('[Termin]', 'Showroom gewählt:', showroomName);
-      // Sanft zur Form-Position scrollen (Top-Header bleibt sichtbar)
-      const final = document.getElementById('final-cta');
-      if (final) {
-        final.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      // Direkt zum Step-2-Container scrollen — scroll-margin-top: 80px deckt Sticky-Header
+      stepMeeting.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 
@@ -87,8 +83,7 @@
       stepMeeting.hidden = true;
       stepShowroom.hidden = false;
       meetingEmbed.innerHTML = '';
-      const final = document.getElementById('final-cta');
-      if (final) final.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      stepShowroom.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
@@ -104,31 +99,17 @@
     });
   });
 
-  // ---------- Sticky Site-Header (Top) + Sticky-CTA-Bar (Bottom Mobile) ----------
+  // ---------- Sticky Site-Header (Top): Reveal nach Hero ----------
   const siteHeader = document.getElementById('site-header');
-  const stickyCta = document.getElementById('sticky-cta');
   const hero = document.querySelector('.hero');
-  const finalCta = document.getElementById('final-cta');
 
-  if (hero && finalCta) {
+  if (hero && siteHeader) {
     const update = () => {
       const heroBottom = hero.getBoundingClientRect().bottom;
-      const finalTop = finalCta.getBoundingClientRect().top;
       const viewportH = window.innerHeight;
-
-      // Top-Header: sichtbar sobald Hero zu ~70% raus ist
-      if (siteHeader) {
-        const headerVisible = heroBottom < viewportH * 0.3;
-        siteHeader.classList.toggle('visible', headerVisible);
-        siteHeader.setAttribute('aria-hidden', String(!headerVisible));
-      }
-
-      // Bottom-Sticky: sichtbar wenn Hero komplett raus und Final-CTA noch nicht oben
-      if (stickyCta) {
-        const ctaVisible = heroBottom < 0 && finalTop > viewportH * 0.5;
-        stickyCta.classList.toggle('visible', ctaVisible);
-        stickyCta.setAttribute('aria-hidden', String(!ctaVisible));
-      }
+      const headerVisible = heroBottom < viewportH * 0.3;
+      siteHeader.classList.toggle('visible', headerVisible);
+      siteHeader.setAttribute('aria-hidden', String(!headerVisible));
     };
     update();
     let ticking = false;
