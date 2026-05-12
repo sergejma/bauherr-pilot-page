@@ -9,6 +9,25 @@
 (() => {
   'use strict';
 
+  // ---------- Google Analytics (consent-gated) ----------
+  const GA_ID = 'G-1TQQ5LLNJF';
+  let gaLoaded = false;
+
+  function loadGoogleAnalytics() {
+    if (gaLoaded) return;
+    gaLoaded = true;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', GA_ID, { anonymize_ip: true });
+  }
+
   // ---------- DSGVO Cookie-Banner ----------
   const cookieBanner = document.getElementById('cookie-banner');
   if (cookieBanner) {
@@ -18,6 +37,9 @@
         cookieBanner.classList.add('visible');
         cookieBanner.setAttribute('aria-hidden', 'false');
       }, 800);
+    } else if (stored === 'all') {
+      // Returning visitor mit Volleinwilligung → GA direkt laden
+      loadGoogleAnalytics();
     }
     cookieBanner.querySelectorAll('[data-cookie]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -28,7 +50,9 @@
         } catch (e) { /* private mode etc. */ }
         cookieBanner.classList.remove('visible');
         cookieBanner.setAttribute('aria-hidden', 'true');
-        // Phase 2: hier Tracking-Scripts laden, wenn choice === 'all'
+        if (choice === 'all') {
+          loadGoogleAnalytics();
+        }
       });
     });
   }
@@ -72,7 +96,13 @@
       loadHubSpotMeetings(meetingUrl, showroomName);
       stepShowroom.hidden = true;
       stepMeeting.hidden = false;
-      console.log('[Termin]', 'Showroom gewählt:', showroomName);
+      // GA-Event: Showroom-Auswahl ist Conversion-Vorstufe (Lead-Intent)
+      if (window.gtag) {
+        window.gtag('event', 'showroom_selected', {
+          event_category: 'termin',
+          event_label: showroomName,
+        });
+      }
       // Direkt zum Step-2-Container scrollen — scroll-margin-top: 80px deckt Sticky-Header
       stepMeeting.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -125,14 +155,16 @@
     window.addEventListener('resize', update, { passive: true });
   }
 
-  // ---------- CTA-Klick-Tracking (Hook für Phase 2 Pixel/GA4) ----------
+  // ---------- CTA-Klick-Tracking ----------
   document.querySelectorAll('[data-cta]').forEach((el) => {
-    el.addEventListener('click', (e) => {
+    el.addEventListener('click', () => {
       const label = el.getAttribute('data-cta');
-      // TODO Phase 2: hier echtes Tracking
-      // window.fbq?.('trackCustom', 'CTAClick', { label });
-      // window.gtag?.('event', 'cta_click', { label });
-      console.log('[CTA]', label);
+      if (window.gtag) {
+        window.gtag('event', 'cta_click', {
+          event_category: 'engagement',
+          event_label: label,
+        });
+      }
     });
   });
 
