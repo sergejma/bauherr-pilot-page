@@ -435,45 +435,60 @@ section.alt .reviews-block { background: #fff; }
 }
 .reviews-block .info strong { color: var(--color-ink); font-weight: 600; font-size: 15px; }
 
-/* ---------- DtGV-Auszeichnungen (6-Jahre-Strip) ---------- */
+/* ---------- DtGV-Auszeichnungen (Light Trust-Card) ---------- */
 .awards-block {
   margin: 2.5rem 0 0;
-  background: var(--color-ink);
-  color: rgba(255, 255, 255, 0.92);
+  background: #fff;
+  border: 1px solid var(--color-sand-dark);
   border-radius: 12px;
-  padding: 1.75rem 1.75rem 1rem;
-  text-align: center;
-}
-.awards-block .awards-text {
-  max-width: 56ch;
-  margin: 0 auto 1rem;
+  padding: 1.75rem 2rem 1rem;
+  position: relative;
 }
 .awards-block .awards-eyebrow {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  margin-bottom: 0.4rem;
+  color: var(--color-stone);
+  margin-bottom: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-.awards-block h3 {
-  color: #fff;
-  font-size: 22px;
+.awards-block .awards-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  background: var(--color-slate);
+}
+.awards-block .awards-headline {
+  font-size: clamp(28px, 4.5vw, 38px);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin-bottom: 0.4rem;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
+  margin: 0 0 0.6rem;
+}
+.awards-block .awards-headline .num {
+  color: var(--color-slate);
+  font-weight: 800;
+  font-feature-settings: "tnum";
+  font-size: 1.18em;
+  margin-right: 0.06em;
 }
 .awards-block .awards-sub {
-  color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
-  line-height: 1.5;
+  color: var(--color-stone);
+  line-height: 1.55;
   margin: 0;
+  max-width: 60ch;
 }
 .awards-block .awards-image {
-  width: 100%;
-  max-width: 880px;
-  margin: 0 auto;
-  display: block;
+  margin: 1.5rem auto 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-sand-dark);
+  max-width: 920px;
   line-height: 0;
 }
 .awards-block .awards-image img {
@@ -482,8 +497,8 @@ section.alt .reviews-block { background: #fff; }
   display: block;
 }
 @media (max-width: 767px) {
-  .awards-block { padding: 1.25rem 1rem 0.75rem; }
-  .awards-block h3 { font-size: 19px; }
+  .awards-block { padding: 1.25rem 1.25rem 0.75rem; }
+  .awards-block .awards-image { margin-top: 1.25rem; padding-top: 1.25rem; }
 }
 
 /* ---------- Media Slots (Hero-Video, Bilder) ---------- */
