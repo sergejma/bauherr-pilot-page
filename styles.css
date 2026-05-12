@@ -436,6 +436,25 @@ section.alt .reviews-block { background: #fff; }
 }
 .reviews-block .info strong { color: var(--color-ink); font-weight: 600; font-size: 15px; }
 
+/* ---------- Trust-Team-Block (Team + Awards + Reviews kombiniert) ---------- */
+.trust-team-block {
+  margin: 2.5rem 0 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-sand-dark);
+  box-shadow: 0 22px 50px -28px rgba(26, 26, 26, 0.22);
+  background: #fff;
+}
+.trust-team-block picture,
+.trust-team-block img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 /* ---------- DtGV-Auszeichnungen (Light Trust-Card) ---------- */
 .awards-block {
   margin: 2.5rem 0 0;
