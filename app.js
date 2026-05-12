@@ -9,6 +9,30 @@
 (() => {
   'use strict';
 
+  // ---------- DSGVO Cookie-Banner ----------
+  const cookieBanner = document.getElementById('cookie-banner');
+  if (cookieBanner) {
+    const stored = localStorage.getItem('cookie-consent');
+    if (!stored) {
+      setTimeout(() => {
+        cookieBanner.classList.add('visible');
+        cookieBanner.setAttribute('aria-hidden', 'false');
+      }, 800);
+    }
+    cookieBanner.querySelectorAll('[data-cookie]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const choice = btn.dataset.cookie;
+        try {
+          localStorage.setItem('cookie-consent', choice);
+          localStorage.setItem('cookie-consent-date', new Date().toISOString());
+        } catch (e) { /* private mode etc. */ }
+        cookieBanner.classList.remove('visible');
+        cookieBanner.setAttribute('aria-hidden', 'true');
+        // Phase 2: hier Tracking-Scripts laden, wenn choice === 'all'
+      });
+    });
+  }
+
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach((item) => {

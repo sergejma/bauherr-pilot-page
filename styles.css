@@ -135,6 +135,7 @@ section.alt {
   font-size: 11px;
   color: var(--color-stone);
   letter-spacing: 1.5px;
+  text-transform: uppercase;
 }
 .section-meta .pill {
   display: inline-block;
@@ -984,6 +985,27 @@ section.alt .compare-card { background: #fff; }
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.92);
 }
+.offer-card .offer-list li > span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.offer-card .offer-list strong {
+  color: #fff;
+  font-weight: 600;
+}
+.offer-card .offer-list .offer-item-price {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+  font-feature-settings: "tnum";
+}
+.offer-card .price-row:first-child .val {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+}
 .offer-card .offer-list .check {
   flex-shrink: 0;
   width: 22px;
@@ -1213,12 +1235,95 @@ section.alt .variant-a-note { background: var(--color-cream); }
 /* ---------- Footer ---------- */
 .site-footer {
   background: var(--color-ink);
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.6);
   padding: 1.5rem 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   text-align: center;
   border-top: 1px solid rgba(255,255,255,0.1);
+}
+.site-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.site-footer .footer-logo {
+  height: 22px;
+  width: auto;
+  opacity: 0.7;
+}
+.site-footer .footer-divider { color: rgba(255,255,255,0.3); }
+.site-footer a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.site-footer a:hover { color: #fff; text-decoration: underline; }
+
+/* ---------- Cookie Banner (DSGVO) ---------- */
+.cookie-banner {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  max-width: 440px;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid var(--color-sand-dark);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 22px 60px -20px rgba(0, 0, 0, 0.28);
+  transform: translateY(150%);
+  transition: transform 0.4s var(--ease-out);
+}
+.cookie-banner.visible { transform: translateY(0); }
+.cookie-banner h4 {
+  margin: 0 0 0.5rem;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cookie-banner p {
+  margin: 0 0 1rem;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-stone);
+}
+.cookie-banner a {
+  color: var(--color-slate);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.cookie-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cookie-actions .btn-primary {
+  min-height: 42px;
+  padding: 10px 18px;
+  font-size: 14px;
+  width: auto;
+}
+.cookie-essential {
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-stone);
+  cursor: pointer;
+  padding: 8px 6px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.cookie-essential:hover { color: var(--color-ink); }
+@media (max-width: 767px) {
+  .cookie-banner { bottom: 88px; left: 8px; right: 8px; padding: 1.1rem 1.25rem; }
 }
 
 /* ---------- Sticky-CTA-Bar (Mobile) ---------- */
