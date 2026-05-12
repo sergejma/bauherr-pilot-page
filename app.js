@@ -33,6 +33,65 @@
     });
   }
 
+  // ---------- Multi-Step Termin-Formular (Showroom → HubSpot Meetings) ----------
+  const stepShowroom = document.getElementById('step-showroom');
+  const stepMeeting = document.getElementById('step-meeting');
+  const meetingEmbed = document.getElementById('meeting-embed');
+  const meetingShowroomName = document.getElementById('meeting-showroom-name');
+  const showroomCards = document.querySelectorAll('.showroom-card');
+  const backToShowroom = document.querySelector('[data-action="back-to-showroom"]');
+  const HUBSPOT_EMBED_SCRIPT = 'https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js';
+
+  function loadHubSpotMeetings(meetingUrl, showroomName) {
+    if (meetingShowroomName) meetingShowroomName.textContent = showroomName;
+
+    meetingEmbed.innerHTML = `
+      <div class="meeting-embed-loading">Kalender lädt…</div>
+      <div class="meetings-iframe-container" data-src="${meetingUrl}?embed=true"></div>
+    `;
+
+    const oldScript = document.querySelector('script[data-hubspot-meetings]');
+    if (oldScript) oldScript.remove();
+
+    const script = document.createElement('script');
+    script.src = HUBSPOT_EMBED_SCRIPT;
+    script.setAttribute('data-hubspot-meetings', 'true');
+    script.async = true;
+    script.onload = () => {
+      const loader = meetingEmbed.querySelector('.meeting-embed-loading');
+      if (loader) loader.remove();
+    };
+    document.body.appendChild(script);
+  }
+
+  showroomCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const meetingUrl = card.dataset.meeting;
+      const showroomName = card.dataset.showroom;
+      if (!meetingUrl) return;
+      loadHubSpotMeetings(meetingUrl, showroomName);
+      stepShowroom.hidden = true;
+      stepMeeting.hidden = false;
+      // CTA-Tracking-Hook
+      console.log('[Termin]', 'Showroom gewählt:', showroomName);
+      // Sanft zur Form-Position scrollen (Top-Header bleibt sichtbar)
+      const final = document.getElementById('final-cta');
+      if (final) {
+        final.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  if (backToShowroom) {
+    backToShowroom.addEventListener('click', () => {
+      stepMeeting.hidden = true;
+      stepShowroom.hidden = false;
+      meetingEmbed.innerHTML = '';
+      const final = document.getElementById('final-cta');
+      if (final) final.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach((item) => {

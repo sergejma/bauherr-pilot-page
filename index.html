@@ -442,10 +442,10 @@
         <h3>Sechs Showrooms zum Anfassen</h3>
         <p>
           Sie sitzen Probe. Sie spüren das Wasser. Sie sehen das Material in echter
-          Beleuchtung, nicht in Studio-Bildern. Unsere sechs Showrooms (Fürth,
-          Unterhaching, Ludwigsburg, Rüsselsheim, Senden, Hamburg) bedienen den
-          gesamten DACH-Raum. Das ist eine andere Beratungs-Qualität als ein
-          30-Minuten-Telefonat mit einem Online-Vertrieb.
+          Beleuchtung, nicht in Studio-Bildern. Unsere sechs Showrooms (Nürnberg,
+          München, Ludwigsburg, Rüsselsheim, Senden, Hamburg) bedienen den gesamten
+          DACH-Raum. Das ist eine andere Beratungs-Qualität als ein 30-Minuten-Telefonat
+          mit einem Online-Vertrieb.
         </p>
       </article>
 
@@ -775,34 +775,76 @@
       uns 60–90 Minuten Zeit für Sie.
     </p>
 
-    <div class="form-wrap">
-      <h3>Termin oder Rückruf anfragen</h3>
-      <p class="form-sub">3 Schritte · 60 Sekunden · keine Kaufverpflichtung</p>
+    <div class="form-wrap" id="termin-form">
+      <!-- Schritt 1: Showroom-Auswahl -->
+      <div class="form-step" id="step-showroom">
+        <h3>Termin im Showroom buchen</h3>
+        <p class="form-sub">In welchem Showroom soll die Beratung stattfinden?</p>
 
-      <!--
-        =========================================================
-        HUBSPOT FORM EMBED
-        =========================================================
-        TODO Sergej: Portal-ID + Form-ID einsetzen.
-        Beispiel-Embed (HubSpot v2 Loader):
+        <div class="showroom-grid">
+          <button type="button" class="showroom-card" data-showroom="Nürnberg" data-region="Region Nürnberg / Fürth" data-meeting="https://meetings-eu1.hubspot.com/patrick-hanke/ausstellung-nurnberg">
+            <span class="showroom-info">
+              <span class="showroom-name">Nürnberg</span>
+              <span class="showroom-region">Region Franken</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
 
-        <script charset="utf-8" type="text/javascript" src="//js-eu1.hsforms.net/forms/embed/v2.js"></script>
-        <script>
-          hbspt.forms.create({
-            region: "eu1",
-            portalId: "TODO_PORTAL_ID",
-            formId: "TODO_FORM_ID",
-            target: "#hubspot-form"
-          });
-        </script>
-      -->
-      <div id="hubspot-form" class="hubspot-embed">
-        <!-- Visueller Platzhalter, bis HubSpot Embed integriert ist -->
-        <div style="padding:2rem;border:2px dashed var(--color-sand-dark);border-radius:8px;background:var(--color-sand);text-align:center;color:var(--color-stone);">
-          <div class="mono" style="font-size:11px;letter-spacing:1.8px;color:var(--color-stone);text-transform:uppercase;margin-bottom:0.5rem;">HubSpot Form</div>
-          <div style="color:var(--color-ink);font-weight:600;margin-bottom:0.25rem;">3-Schritt-Form wird hier integriert</div>
-          <div style="font-size:14px;">Name &amp; Kontakt → Showroom-Wahl → Termin oder Rückruf</div>
+          <button type="button" class="showroom-card" data-showroom="München" data-region="Region München" data-meeting="https://vertrieb.spadeluxe.de/meetings/nico-ehlers/ausstellung-munchen">
+            <span class="showroom-info">
+              <span class="showroom-name">München</span>
+              <span class="showroom-region">Region Oberbayern</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
+
+          <button type="button" class="showroom-card" data-showroom="Ludwigsburg" data-region="Region Stuttgart" data-meeting="https://hub.spadeluxe.de/meetings/sergej-markwart/ausstellung-ludwigsburg">
+            <span class="showroom-info">
+              <span class="showroom-name">Ludwigsburg</span>
+              <span class="showroom-region">Region Stuttgart</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
+
+          <button type="button" class="showroom-card" data-showroom="Rüsselsheim" data-region="Region Frankfurt" data-meeting="https://vertrieb.spadeluxe.de/meetings/tobias-schweitzer/ausstellung-ruesselsheim">
+            <span class="showroom-info">
+              <span class="showroom-name">Rüsselsheim</span>
+              <span class="showroom-region">Region Frankfurt</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
+
+          <button type="button" class="showroom-card" data-showroom="Senden" data-region="Münsterland" data-meeting="https://hub.spadeluxe.de/meetings/sergej-markwart/ausstellung-senden">
+            <span class="showroom-info">
+              <span class="showroom-name">Senden</span>
+              <span class="showroom-region">Münsterland</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
+
+          <button type="button" class="showroom-card" data-showroom="Hamburg" data-region="Region Hamburg" data-meeting="https://meetings-eu1.hubspot.com/ralph-dieckmann/ausstellung-hamburg">
+            <span class="showroom-info">
+              <span class="showroom-name">Hamburg</span>
+              <span class="showroom-region">Region Hamburg</span>
+            </span>
+            <span class="showroom-arrow" aria-hidden="true">→</span>
+          </button>
         </div>
+
+        <p class="form-foot">
+          Lieber telefonisch? Rufen Sie uns direkt an:
+          <a href="tel:+4925974753015">02597 4753015</a>
+        </p>
+      </div>
+
+      <!-- Schritt 2: HubSpot Meeting-Kalender -->
+      <div class="form-step" id="step-meeting" hidden>
+        <button type="button" class="back-link" data-action="back-to-showroom">
+          <span aria-hidden="true">←</span> Anderen Showroom wählen
+        </button>
+        <h3 class="meeting-title">Termin im Showroom <span id="meeting-showroom-name">Showroom</span></h3>
+        <p class="form-sub">Wählen Sie einen Wunschtermin — Sie erhalten die Bestätigung per E-Mail.</p>
+        <div class="meeting-embed-container" id="meeting-embed"></div>
       </div>
     </div>
 
