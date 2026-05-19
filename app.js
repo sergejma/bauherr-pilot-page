@@ -90,9 +90,15 @@
   function loadHubSpotMeetings(meetingUrl, showroomName) {
     if (meetingShowroomName) meetingShowroomName.textContent = showroomName;
 
+    // UTM/Click-IDs aus der Landing-URL durchreichen, damit HubSpot die Quelle
+    // dem Meeting-Kontakt zuordnen kann (utm_*, gclid, fbclid, msclkid …)
+    const params = new URLSearchParams(window.location.search).toString();
+    const base = meetingUrl + '?embed=true';
+    const iframeSrc = params ? base + '&' + params : base;
+
     meetingEmbed.innerHTML = `
       <div class="meeting-embed-loading">Kalender lädt…</div>
-      <div class="meetings-iframe-container" data-src="${meetingUrl}?embed=true"></div>
+      <div class="meetings-iframe-container" data-src="${iframeSrc}"></div>
     `;
 
     const oldScript = document.querySelector('script[data-hubspot-meetings]');
