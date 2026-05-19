@@ -238,7 +238,6 @@
     terminModal.classList.add('termin-modal--meeting');
 
     terminModalBody.innerHTML =
-      '<div class="termin-modal-loading">Kalender lädt …</div>' +
       '<iframe src="' + url + '" title="Terminkalender ' + currentShowroomName +
       '" height="720" loading="lazy"></iframe>';
   }
