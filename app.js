@@ -79,9 +79,11 @@
   }
 
   // ---------- Attribution-Persistenz (UTM / Click-IDs) ----------
-  // Marketing-Params beim ersten Visit in localStorage puffern, damit ein User,
-  // der mit ?utm_* landet aber erst nach Reload/Re-Visit bucht, die Attribution
-  // trotzdem an die Meeting-Subdomain mitbringt.
+  // Wir puffern Marketing-Params beim ersten Visit in localStorage. Vor dem
+  // Öffnen des Termin-Modals stellen wir sie via history.replaceState in der
+  // URL wieder her — HubSpots Hidden-Fields lesen ihre Defaults aus
+  // window.location.search beim Form-Render, also muss die URL zur Render-Zeit
+  // die UTMs tragen, sonst landen Submits ohne Attribution im CRM.
   const ATTRIBUTION_STORAGE_KEY = 'spa_utm';
   const ATTRIBUTION_KEYS = [
     'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
@@ -98,58 +100,114 @@
     return out;
   }
 
-  // Nur überschreiben, wenn neue Attribution in der URL ist — sonst würde ein
-  // Re-Visit ohne Params die ursprüngliche Quelle aus localStorage löschen.
   const attributionFromUrl = extractAttribution(window.location.search);
   if (Object.keys(attributionFromUrl).length) {
+    // URL hat Attribution → speichern, sodass spätere Re-Visits sie behalten.
     try {
       localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(attributionFromUrl));
     } catch (e) { /* private mode */ }
-  }
-
-  function getCookie(name) {
-    const match = document.cookie.split('; ').find((c) => c.startsWith(name + '='));
-    return match ? match.split('=').slice(1).join('=') : '';
-  }
-
-  // ---------- Showroom-Auswahl → Top-Level-Redirect auf HubSpot-Meetings ----------
-  // KEIN iframe-Embed: der iframe würde die hubspotutk-Cookie nicht lesen
-  // und damit die komplette Attribution-Kette (erste Seite, Referrer, UTMs)
-  // unterbrechen. Top-Level-Navigation auf *.spadeluxe.de teilt die Cookie.
-  //
-  // Wir hängen drei Schichten an die Meeting-URL:
-  //   1) Alle aktuellen URL-Params der LP (UTMs, gclid, beliebige Custom-Params)
-  //   2) localStorage-Backfill für Attribution, die in dieser Session schon
-  //      einmal in der URL stand, aktuell aber nicht mehr (Re-Visit, Reload)
-  //   3) HubSpot Cross-Domain-Cookies — die Meeting-Seite stitcht damit die
-  //      Session an den LP-Visit, sodass "Erste angezeigte Seite" + native
-  //      Source-Props (hs_analytics_first_referrer …) korrekt befüllt werden
-  function buildRedirectQuery() {
-    const merged = new URLSearchParams(window.location.search);
-
+  } else {
+    // URL ohne Attribution, localStorage hat aber welche → URL still
+    // restaurieren, damit die HubSpot-Form-Hidden-Fields sie picken können.
     try {
       const stored = JSON.parse(localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || '{}');
-      Object.entries(stored).forEach(([k, v]) => {
-        if (!merged.has(k)) merged.set(k, v);
-      });
+      if (Object.keys(stored).length) {
+        const restored = new URLSearchParams(window.location.search);
+        Object.entries(stored).forEach(([k, v]) => {
+          if (!restored.has(k)) restored.set(k, v);
+        });
+        const qs = restored.toString();
+        if (qs) {
+          history.replaceState(null, '', window.location.pathname + '?' + qs + window.location.hash);
+        }
+      }
     } catch (e) { /* private mode oder invalid JSON */ }
+  }
 
-    ['hubspotutk', '__hstc', '__hssc', '__hsfp'].forEach((name) => {
-      const v = getCookie(name);
-      if (v) merged.set(name, v);
+  // ---------- Termin-Modal: HubSpot Pre-Form → Meeting-iframe ----------
+  const HUBSPOT_FORM_PORTAL_ID = '25504893';
+  const HUBSPOT_FORM_REGION = 'eu1';
+  const HUBSPOT_FORM_ID = '73be52e0-7657-4c38-b638-b864dc33107e';
+
+  const terminModal = document.getElementById('termin-modal');
+  const terminModalBody = document.getElementById('termin-modal-body');
+  const terminModalEyebrow = document.getElementById('termin-modal-eyebrow');
+  const terminModalTitle = document.getElementById('termin-modal-title');
+  const terminModalSub = document.getElementById('termin-modal-sub');
+
+  let currentMeetingUrl = '';
+  let currentShowroomName = '';
+
+  function openTerminModal(meetingUrl, showroomName, regionLabel) {
+    currentMeetingUrl = meetingUrl;
+    currentShowroomName = showroomName;
+
+    terminModalEyebrow.textContent = regionLabel || 'Showroom';
+    terminModalTitle.textContent = 'Termin im Showroom ' + showroomName;
+    terminModalSub.textContent = 'Kurz Ihre Kontaktdaten — danach wählen Sie direkt Ihren Wunschtermin.';
+    terminModalSub.hidden = false;
+
+    // Frischer Form-Container; HubSpots Embed-Script entdeckt neue
+    // .hs-form-frame-Divs automatisch und rendert sie.
+    terminModalBody.innerHTML =
+      '<div class="termin-modal-loading">Formular lädt …</div>' +
+      '<div class="hs-form-frame" data-region="' + HUBSPOT_FORM_REGION +
+      '" data-form-id="' + HUBSPOT_FORM_ID +
+      '" data-portal-id="' + HUBSPOT_FORM_PORTAL_ID + '"></div>';
+
+    terminModal.classList.remove('termin-modal--meeting');
+    terminModal.hidden = false;
+    document.body.classList.add('modal-open');
+  }
+
+  function showMeetingIframe(submissionValues) {
+    const get = (key) => (submissionValues && submissionValues[key]) || '';
+    const params = new URLSearchParams({ embed: 'true' });
+    const firstName = get('firstname');
+    const lastName = get('lastname');
+    const email = get('email');
+    const phone = get('phone');
+    if (firstName) params.set('firstName', firstName);
+    if (lastName) params.set('lastName', lastName);
+    if (email) params.set('email', email);
+    if (phone) params.set('phone', phone);
+
+    // Pre-Fill für native HubSpot-Source-Props auf der Meeting-Seite
+    ATTRIBUTION_KEYS.forEach((k) => {
+      const v = submissionValues && submissionValues[k];
+      if (v) params.set(k, v);
     });
 
-    return merged.toString();
+    const url = currentMeetingUrl + '?' + params.toString();
+
+    terminModalEyebrow.textContent = currentShowroomName;
+    terminModalTitle.textContent = 'Wunschtermin wählen';
+    terminModalSub.hidden = true;
+    terminModal.classList.add('termin-modal--meeting');
+
+    terminModalBody.innerHTML =
+      '<div class="termin-modal-loading">Kalender lädt …</div>' +
+      '<iframe src="' + url + '" title="Terminkalender ' + currentShowroomName +
+      '" height="720" loading="lazy"></iframe>';
+  }
+
+  function closeTerminModal() {
+    terminModal.hidden = true;
+    terminModal.classList.remove('termin-modal--meeting');
+    terminModalBody.innerHTML = '';
+    document.body.classList.remove('modal-open');
+    currentMeetingUrl = '';
+    currentShowroomName = '';
   }
 
   document.querySelectorAll('.showroom-card').forEach((card) => {
     card.addEventListener('click', () => {
       const meetingUrl = card.dataset.meeting;
       const showroomName = card.dataset.showroom;
+      const regionLabel = card.dataset.region;
       if (!meetingUrl) return;
 
-      const qs = buildRedirectQuery();
-      const targetUrl = qs ? meetingUrl + '?' + qs : meetingUrl;
+      openTerminModal(meetingUrl, showroomName, regionLabel);
 
       if (window.gtag) {
         window.gtag('event', 'showroom_selected', {
@@ -157,9 +215,39 @@
           event_label: showroomName,
         });
       }
-
-      window.location.href = targetUrl;
     });
+  });
+
+  // Close-Handler: Backdrop, X-Button, Escape
+  terminModal.addEventListener('click', (e) => {
+    if (e.target instanceof HTMLElement && e.target.dataset.action === 'close-modal') {
+      closeTerminModal();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !terminModal.hidden) closeTerminModal();
+  });
+
+  // HubSpot-Form-Submitted → Swap auf Meeting-iframe.
+  // HubSpots V2-Embed kommuniziert per postMessage; submissionValues enthält
+  // alle Felder (auch hidden UTMs) als { fieldName: value }.
+  window.addEventListener('message', (e) => {
+    const msg = e.data;
+    if (!msg || msg.type !== 'hsFormCallback') return;
+    if (msg.eventName !== 'onFormSubmitted' && msg.eventName !== 'onFormSubmit') return;
+    if (msg.id && msg.id !== HUBSPOT_FORM_ID) return;
+    if (!currentMeetingUrl) return;
+
+    const values = msg.data && msg.data.submissionValues ? msg.data.submissionValues : {};
+
+    if (window.gtag) {
+      window.gtag('event', 'form_submit', {
+        event_category: 'termin',
+        event_label: currentShowroomName,
+      });
+    }
+
+    showMeetingIframe(values);
   });
 
   // ---------- FAQ-Akkordeon ----------

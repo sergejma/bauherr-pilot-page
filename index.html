@@ -21,6 +21,9 @@
 
   <link rel="stylesheet" href="styles.css" />
 
+  <!-- HubSpot Forms Embed (rendert Modal-Form für Termin-Buchung) -->
+  <script src="https://js-eu1.hsforms.net/forms/embed/25504893.js" defer></script>
+
   <!--
     Tracking-Strategie:
     - GA4 (G-1TQQ5LLNJF) + HubSpot (Portal 25504893, hs-scripts.com)
@@ -857,6 +860,24 @@
   <div class="cookie-actions">
     <button type="button" class="btn btn-primary" data-cookie="all">Alle akzeptieren</button>
     <button type="button" class="cookie-essential" data-cookie="essential">Nur Notwendige</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     Termin-Modal — Schritt 1: HubSpot-Pre-Form, Schritt 2: Meeting-iframe
+     ============================================================ -->
+<div class="termin-modal" id="termin-modal" role="dialog" aria-modal="true" aria-labelledby="termin-modal-title" hidden>
+  <div class="termin-modal-backdrop" data-action="close-modal" aria-hidden="true"></div>
+  <div class="termin-modal-card">
+    <button type="button" class="termin-modal-close" data-action="close-modal" aria-label="Schließen">×</button>
+    <div class="termin-modal-head">
+      <p class="termin-modal-eyebrow" id="termin-modal-eyebrow">Showroom</p>
+      <h3 class="termin-modal-title" id="termin-modal-title">Termin anfragen</h3>
+      <p class="termin-modal-sub" id="termin-modal-sub">Kurz Ihre Kontaktdaten — danach wählen Sie direkt Ihren Wunschtermin.</p>
+    </div>
+    <div class="termin-modal-body" id="termin-modal-body">
+      <!-- HubSpot-Form-Embed wird hier per JS injiziert; nach Submit ersetzt durch Meeting-iframe -->
+    </div>
   </div>
 </div>
 
