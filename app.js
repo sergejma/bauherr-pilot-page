@@ -168,22 +168,28 @@
     frame.addEventListener('hs-form-event:on-submission:success', async (ev) => {
       const detail = ev.detail || {};
       const values = {};
+      let rawFieldValues = null;
       try {
         const api = window.HubspotFormsV4;
         if (api && typeof api.getForms === 'function') {
           const forms = api.getForms();
           const form = forms.find((f) => typeof f.getFormId === 'function' && f.getFormId() === detail.formId);
           if (form && typeof form.getFormFieldValues === 'function') {
-            const fieldValues = await form.getFormFieldValues();
-            if (Array.isArray(fieldValues)) {
-              fieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
-            } else if (fieldValues && typeof fieldValues === 'object') {
-              Object.assign(values, fieldValues);
+            rawFieldValues = await form.getFormFieldValues();
+            if (Array.isArray(rawFieldValues)) {
+              rawFieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
+            } else if (rawFieldValues && typeof rawFieldValues === 'object') {
+              Object.assign(values, rawFieldValues);
             }
           }
         }
       } catch (err) {
-        if (window.console) console.warn('HubSpot getFormFieldValues failed, opening calendar without pre-fill:', err);
+        if (window.console) console.warn('[Termin] HubSpot getFormFieldValues failed:', err);
+      }
+
+      if (window.console) {
+        console.log('[Termin] raw fieldValues from HubSpot:', rawFieldValues);
+        console.log('[Termin] mapped values:', values);
       }
 
       if (window.gtag) {
@@ -213,12 +219,29 @@
   }
 
   function showMeetingIframe(submissionValues) {
-    const get = (key) => (submissionValues && submissionValues[key]) || '';
+    // Tolerantes Field-Lookup: HubSpot kann Property-Namen mit/ohne Underscore,
+    // Camel- oder lowercase liefern — wir akzeptieren alle gängigen Varianten.
+    const lowerMap = {};
+    if (submissionValues && typeof submissionValues === 'object') {
+      Object.keys(submissionValues).forEach((k) => {
+        const v = submissionValues[k];
+        if (v) lowerMap[k.toLowerCase()] = v;
+      });
+    }
+    const findValue = (candidates) => {
+      for (const c of candidates) {
+        const hit = lowerMap[c.toLowerCase()];
+        if (hit) return hit;
+      }
+      return '';
+    };
+
+    const firstName = findValue(['firstname', 'first_name', 'firstName']);
+    const lastName = findValue(['lastname', 'last_name', 'lastName']);
+    const email = findValue(['email', 'email_address', 'emailaddress']);
+    const phone = findValue(['phone', 'phonenumber', 'phone_number', 'mobilephone']);
+
     const params = new URLSearchParams({ embed: 'true' });
-    const firstName = get('firstname');
-    const lastName = get('lastname');
-    const email = get('email');
-    const phone = get('phone');
     if (firstName) params.set('firstName', firstName);
     if (lastName) params.set('lastName', lastName);
     if (email) params.set('email', email);
@@ -226,11 +249,12 @@
 
     // Pre-Fill für native HubSpot-Source-Props auf der Meeting-Seite
     ATTRIBUTION_KEYS.forEach((k) => {
-      const v = submissionValues && submissionValues[k];
+      const v = lowerMap[k.toLowerCase()];
       if (v) params.set(k, v);
     });
 
     const url = currentMeetingUrl + '?' + params.toString();
+    if (window.console) console.log('[Termin] Calendar iframe URL:', url);
 
     terminModalEyebrow.textContent = currentShowroomName;
     terminModalTitle.textContent = 'Wunschtermin wählen';
