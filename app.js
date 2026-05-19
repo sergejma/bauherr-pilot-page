@@ -78,71 +78,63 @@
     });
   }
 
-  // ---------- Multi-Step Termin-Formular (Showroom → HubSpot Meetings) ----------
-  const stepShowroom = document.getElementById('step-showroom');
-  const stepMeeting = document.getElementById('step-meeting');
-  const meetingEmbed = document.getElementById('meeting-embed');
-  const meetingShowroomName = document.getElementById('meeting-showroom-name');
-  const showroomCards = document.querySelectorAll('.showroom-card');
-  const backToShowroom = document.querySelector('[data-action="back-to-showroom"]');
-  const HUBSPOT_EMBED_SCRIPT = 'https://static.hsappstatic.net/MeetingsEmbed/ex/MeetingsEmbedCode.js';
+  // ---------- Attribution-Persistenz (UTM / Click-IDs) ----------
+  // Warum: HubSpot kann UTMs nicht aus dem Meeting-Embed-iframe einer anderen
+  // Subdomain auslesen (Third-Party-Cookie-Restrictions). Wir leiten deshalb
+  // per Top-Level-Navigation auf die HubSpot-Meetings-Subdomain weiter und
+  // hängen die Marketing-Params an die URL. localStorage puffert die Werte,
+  // falls der User die LP mit ?utm_* öffnet, aber erst später bucht.
+  const ATTRIBUTION_STORAGE_KEY = 'spa_utm';
+  const ATTRIBUTION_KEYS = [
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+    'gclid', 'fbclid', 'msclkid', 'yclid', 'ttclid', 'li_fat_id',
+  ];
 
-  function loadHubSpotMeetings(meetingUrl, showroomName) {
-    if (meetingShowroomName) meetingShowroomName.textContent = showroomName;
-
-    // UTM/Click-IDs aus der Landing-URL durchreichen, damit HubSpot die Quelle
-    // dem Meeting-Kontakt zuordnen kann (utm_*, gclid, fbclid, msclkid …)
-    const params = new URLSearchParams(window.location.search).toString();
-    const base = meetingUrl + '?embed=true';
-    const iframeSrc = params ? base + '&' + params : base;
-
-    meetingEmbed.innerHTML = `
-      <div class="meeting-embed-loading">Kalender lädt…</div>
-      <div class="meetings-iframe-container" data-src="${iframeSrc}"></div>
-    `;
-
-    const oldScript = document.querySelector('script[data-hubspot-meetings]');
-    if (oldScript) oldScript.remove();
-
-    const script = document.createElement('script');
-    script.src = HUBSPOT_EMBED_SCRIPT;
-    script.setAttribute('data-hubspot-meetings', 'true');
-    script.async = true;
-    script.onload = () => {
-      const loader = meetingEmbed.querySelector('.meeting-embed-loading');
-      if (loader) loader.remove();
-    };
-    document.body.appendChild(script);
+  function extractAttribution(searchString) {
+    const src = new URLSearchParams(searchString);
+    const out = new URLSearchParams();
+    ATTRIBUTION_KEYS.forEach((k) => {
+      const v = src.get(k);
+      if (v) out.set(k, v);
+    });
+    return out.toString();
   }
 
-  showroomCards.forEach((card) => {
+  // Nur überschreiben, wenn neue Attribution in der URL ist — sonst würde ein
+  // Re-Visit ohne Params die ursprüngliche Quelle aus localStorage löschen.
+  const attributionFromUrl = extractAttribution(window.location.search);
+  if (attributionFromUrl) {
+    try { localStorage.setItem(ATTRIBUTION_STORAGE_KEY, attributionFromUrl); } catch (e) { /* private mode */ }
+  }
+
+  function getAttributionQuery() {
+    if (attributionFromUrl) return attributionFromUrl;
+    try { return localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  // ---------- Showroom-Auswahl → Top-Level-Redirect auf HubSpot-Meetings ----------
+  // KEIN iframe-Embed: der iframe würde die hubspotutk-Cookie nicht lesen
+  // und damit die komplette Attribution-Kette (erste Seite, Referrer, UTMs)
+  // unterbrechen. Top-Level-Navigation auf *.spadeluxe.de teilt die Cookie.
+  document.querySelectorAll('.showroom-card').forEach((card) => {
     card.addEventListener('click', () => {
       const meetingUrl = card.dataset.meeting;
       const showroomName = card.dataset.showroom;
       if (!meetingUrl) return;
-      loadHubSpotMeetings(meetingUrl, showroomName);
-      stepShowroom.hidden = true;
-      stepMeeting.hidden = false;
-      // GA-Event: Showroom-Auswahl ist Conversion-Vorstufe (Lead-Intent)
+
+      const attribution = getAttributionQuery();
+      const targetUrl = attribution ? meetingUrl + '?' + attribution : meetingUrl;
+
       if (window.gtag) {
         window.gtag('event', 'showroom_selected', {
           event_category: 'termin',
           event_label: showroomName,
         });
       }
-      // Direkt zum Step-2-Container scrollen — scroll-margin-top: 80px deckt Sticky-Header
-      stepMeeting.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      window.location.href = targetUrl;
     });
   });
-
-  if (backToShowroom) {
-    backToShowroom.addEventListener('click', () => {
-      stepMeeting.hidden = true;
-      stepShowroom.hidden = false;
-      meetingEmbed.innerHTML = '';
-      stepShowroom.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
 
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');

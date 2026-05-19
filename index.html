@@ -748,7 +748,7 @@
     </p>
 
     <div class="form-wrap" id="termin-form">
-      <!-- Schritt 1: Showroom-Auswahl -->
+      <!-- Showroom-Auswahl → leitet per Top-Level-Navigation auf das HubSpot Meeting-Tool weiter (Cross-Domain-Tracking erfordert kein iframe) -->
       <div class="form-step" id="step-showroom">
         <h3>Termin im Showroom buchen</h3>
         <p class="form-sub">In welchem Showroom soll die Beratung stattfinden?</p>
@@ -807,16 +807,6 @@
           Lieber telefonisch? Rufen Sie uns direkt an:
           <a href="tel:+4925974753015">02597 4753015</a>
         </p>
-      </div>
-
-      <!-- Schritt 2: HubSpot Meeting-Kalender -->
-      <div class="form-step" id="step-meeting" hidden>
-        <button type="button" class="back-link" data-action="back-to-showroom">
-          <span aria-hidden="true">←</span> Anderen Showroom wählen
-        </button>
-        <h3 class="meeting-title">Termin im Showroom <span id="meeting-showroom-name">Showroom</span></h3>
-        <p class="form-sub">Wählen Sie einen Wunschtermin — Sie erhalten die Bestätigung per E-Mail.</p>
-        <div class="meeting-embed-container" id="meeting-embed"></div>
       </div>
     </div>
 
