@@ -147,7 +147,7 @@
     terminModalSub.textContent = 'Kurz Ihre Kontaktdaten — danach wählen Sie direkt Ihren Wunschtermin.';
     terminModalSub.hidden = false;
 
-    // Form-Container per DOM-API anhängen — HubSpots V2-Embed erkennt
+    // Form-Container per DOM-API anhängen — HubSpots V3-Embed erkennt
     // .hs-form-frame-Divs nur zuverlässig, wenn sie per appendChild/insertBefore
     // in den DOM kommen. innerHTML-Injection wird vom Scanner übersehen → leer.
     terminModalBody.innerHTML = '';
@@ -162,6 +162,40 @@
     frame.setAttribute('data-region', HUBSPOT_FORM_REGION);
     frame.setAttribute('data-form-id', HUBSPOT_FORM_ID);
     frame.setAttribute('data-portal-id', HUBSPOT_FORM_PORTAL_ID);
+
+    // V3-Embed feuert CustomEvents auf dem Frame (kein window.postMessage mehr).
+    // Listener vor appendChild registrieren, damit kein Race-Risiko bleibt.
+    frame.addEventListener('hs-form-event:on-submission:success', async (ev) => {
+      const detail = ev.detail || {};
+      const values = {};
+      try {
+        const api = window.HubspotFormsV4;
+        if (api && typeof api.getForms === 'function') {
+          const forms = api.getForms();
+          const form = forms.find((f) => typeof f.getFormId === 'function' && f.getFormId() === detail.formId);
+          if (form && typeof form.getFormFieldValues === 'function') {
+            const fieldValues = await form.getFormFieldValues();
+            if (Array.isArray(fieldValues)) {
+              fieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
+            } else if (fieldValues && typeof fieldValues === 'object') {
+              Object.assign(values, fieldValues);
+            }
+          }
+        }
+      } catch (err) {
+        if (window.console) console.warn('HubSpot getFormFieldValues failed, opening calendar without pre-fill:', err);
+      }
+
+      if (window.gtag) {
+        window.gtag('event', 'form_submit', {
+          event_category: 'termin',
+          event_label: currentShowroomName,
+        });
+      }
+
+      showMeetingIframe(values);
+    });
+
     terminModalBody.appendChild(frame);
 
     // Loader entfernen, sobald HubSpot das Form rendert (form-Tag oder iframe erscheint)
@@ -246,33 +280,6 @@
     if (e.key === 'Escape' && !terminModal.hidden) closeTerminModal();
   });
 
-  // HubSpot-Form-Submitted → Swap auf Meeting-iframe.
-  // HubSpots V2-Embed liefert submissionValues als Array von { name, value },
-  // nicht als { name: value }-Map — wir mappen erst, dann an showMeetingIframe.
-  window.addEventListener('message', (e) => {
-    const msg = e.data;
-    if (!msg || msg.type !== 'hsFormCallback') return;
-    if (msg.eventName !== 'onFormSubmitted') return;
-    if (!currentMeetingUrl) return;
-
-    const values = {};
-    const submissionValues = msg.data && msg.data.submissionValues;
-    if (Array.isArray(submissionValues)) {
-      submissionValues.forEach((f) => { if (f && f.name) values[f.name] = f.value; });
-    } else if (submissionValues && typeof submissionValues === 'object') {
-      // Defensiv: falls HubSpot das Format mal als Map liefert
-      Object.assign(values, submissionValues);
-    }
-
-    if (window.gtag) {
-      window.gtag('event', 'form_submit', {
-        event_category: 'termin',
-        event_label: currentShowroomName,
-      });
-    }
-
-    showMeetingIframe(values);
-  });
 
   // ---------- FAQ-Akkordeon ----------
   const faqItems = document.querySelectorAll('.faq-item');
