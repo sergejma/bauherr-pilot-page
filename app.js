@@ -270,40 +270,11 @@
 
     const url = meetingUrl + '?' + params.toString();
 
-    // Auf Mobile: Top-Level-Navigation statt iframe-im-Modal.
-    // HubSpots Mobile-Meetings-Widget honoriert URL-Pre-Fill-Params nur als
-    // volle Seite, nicht eingebettet (verifiziert auf iOS Safari). Der Lead
-    // liegt durch den Form-Submit bereits im CRM, Attribution ist sicher.
-    if (window.matchMedia('(max-width: 768px)').matches) {
-      // iOS Safari blockiert window.location.href aus async-Handlern, wenn
-      // der User-Gesture-Kontext verloren ist. Drei Strategien parallel:
-      //   1) Sichtbarer Tap-Link im Modal als verlässlicher Fallback
-      //   2) Programmatischer Click auf einen <a>-Element (iOS-permissiver
-      //      als location.href in async-Kontexten)
-      //   3) location.href via setTimeout als Belt-and-Suspenders
-      terminModalBody.innerHTML =
-        '<p class="termin-modal-loading">Weiterleitung zum Kalender …</p>' +
-        '<p style="margin-top:1.25rem;text-align:center;font-size:15px;line-height:1.5;">' +
-        'Falls die Weiterleitung nicht automatisch startet:<br>' +
-        '<a href="' + url + '" style="display:inline-block;margin-top:0.5rem;padding:10px 18px;background:var(--color-action);color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Zum Kalender</a>' +
-        '</p>';
-
-      try {
-        const link = document.createElement('a');
-        link.href = url;
-        link.rel = 'noopener';
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (e) { /* fallback unten */ }
-
-      setTimeout(() => {
-        if (!document.hidden) window.location.href = url;
-      }, 60);
-
-      return;
-    }
+    // Hinweis: HubSpots Mobile-Meetings-Widget honoriert die URL-Pre-Fill-Params
+    // nicht — verifiziert via Live-Test auf iOS Safari, sowohl im iframe als
+    // auch bei Top-Level-Navigation zur Meeting-Page. Akzeptierte Limitierung:
+    // Mobile-User muss die 4 Felder im Kalender nochmal eingeben. HubSpot
+    // dedupliziert via E-Mail, der Lead aus dem Pre-Form bleibt erhalten.
 
     terminModalEyebrow.textContent = showroomName;
     terminModalTitle.textContent = 'Wunschtermin wählen';
