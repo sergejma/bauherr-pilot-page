@@ -241,9 +241,12 @@
     const email = findValue(['email', 'email_address', 'emailaddress']);
     const phone = findValue(['phone', 'phonenumber', 'phone_number', 'mobilephone']);
 
+    // HubSpot-Meetings akzeptiert für Pre-Fill verschiedene Param-Schreibweisen.
+    // Desktop-Widget normalisiert sie, Mobile-Widget (iOS Safari) ist strenger
+    // und greift nur die lowercase-Property-Namen — daher beide Varianten setzen.
     const params = new URLSearchParams({ embed: 'true' });
-    if (firstName) params.set('firstName', firstName);
-    if (lastName) params.set('lastName', lastName);
+    if (firstName) { params.set('firstName', firstName); params.set('firstname', firstName); }
+    if (lastName) { params.set('lastName', lastName); params.set('lastname', lastName); }
     if (email) params.set('email', email);
     if (phone) params.set('phone', phone);
 
