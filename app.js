@@ -166,6 +166,13 @@
     // V3-Embed feuert CustomEvents auf dem Frame (kein window.postMessage mehr).
     // Listener vor appendChild registrieren, damit kein Race-Risiko bleibt.
     frame.addEventListener('hs-form-event:on-submission:success', async (ev) => {
+      // Snapshot der Modul-State synchron beim Submit-Event — verhindert
+      // Race, falls User während des await die Modal schließt (würde sonst
+      // currentMeetingUrl auf '' setzen und den Redirect zu relativem '?…'
+      // navigieren lassen, sprich auf bauherren statt vertrieb).
+      const meetingUrlSnapshot = currentMeetingUrl;
+      const showroomNameSnapshot = currentShowroomName;
+
       const detail = ev.detail || {};
       const values = {};
       try {
@@ -189,11 +196,11 @@
       if (window.gtag) {
         window.gtag('event', 'form_submit', {
           event_category: 'termin',
-          event_label: currentShowroomName,
+          event_label: showroomNameSnapshot,
         });
       }
 
-      showMeetingIframe(values);
+      showMeetingIframe(values, meetingUrlSnapshot, showroomNameSnapshot);
     });
 
     terminModalBody.appendChild(frame);
@@ -212,7 +219,16 @@
     document.body.classList.add('modal-open');
   }
 
-  function showMeetingIframe(submissionValues) {
+  function showMeetingIframe(submissionValues, meetingUrl, showroomName) {
+    // Guard: ohne valide Meeting-URL kein Redirect, kein iframe — sonst
+    // navigieren wir versehentlich relativ und bleiben auf bauherren.
+    meetingUrl = meetingUrl || currentMeetingUrl;
+    showroomName = showroomName || currentShowroomName;
+    if (!meetingUrl || !/^https?:\/\//i.test(meetingUrl)) {
+      if (window.console) console.warn('[Termin] showMeetingIframe: ungültige meetingUrl, abgebrochen:', meetingUrl);
+      return;
+    }
+
     // Tolerantes Field-Lookup: HubSpot kann Property-Namen mit/ohne Underscore,
     // Camel- oder lowercase liefern — wir akzeptieren alle gängigen Varianten.
     const lowerMap = {};
@@ -250,24 +266,32 @@
       if (v) params.set(k, v);
     });
 
-    const url = currentMeetingUrl + '?' + params.toString();
+    const url = meetingUrl + '?' + params.toString();
 
     // Auf Mobile: Top-Level-Navigation statt iframe-im-Modal.
     // HubSpots Mobile-Meetings-Widget honoriert URL-Pre-Fill-Params nur als
     // volle Seite, nicht eingebettet (verifiziert auf iOS Safari). Der Lead
     // liegt durch den Form-Submit bereits im CRM, Attribution ist sicher.
     if (window.matchMedia('(max-width: 768px)').matches) {
+      // Sichtbarer Fallback-Link, falls iOS die Auto-Navigation aus dem
+      // async Submit-Handler blockiert (passiert wenn der User-Gesture-Kontext
+      // verloren ist) — User kann dann manuell antippen.
+      terminModalBody.innerHTML =
+        '<p class="termin-modal-loading">Weiterleitung zum Kalender …</p>' +
+        '<p style="margin-top:1rem;text-align:center;">' +
+        '<a href="' + url + '" style="color:var(--color-action);font-weight:600;">' +
+        'Hier tippen, falls die Weiterleitung nicht startet</a></p>';
       window.location.href = url;
       return;
     }
 
-    terminModalEyebrow.textContent = currentShowroomName;
+    terminModalEyebrow.textContent = showroomName;
     terminModalTitle.textContent = 'Wunschtermin wählen';
     terminModalSub.hidden = true;
     terminModal.classList.add('termin-modal--meeting');
 
     terminModalBody.innerHTML =
-      '<iframe src="' + url + '" title="Terminkalender ' + currentShowroomName +
+      '<iframe src="' + url + '" title="Terminkalender ' + showroomName +
       '" height="720" loading="lazy"></iframe>';
   }
 
