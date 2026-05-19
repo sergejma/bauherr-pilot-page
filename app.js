@@ -90,19 +90,20 @@
 
   function extractAttribution(searchString) {
     const src = new URLSearchParams(searchString);
-    const out = new URLSearchParams();
+    const out = {};
     ATTRIBUTION_KEYS.forEach((k) => {
       const v = src.get(k);
-      if (v) out.set(k, v);
+      if (v) out[k] = v;
     });
-    return out.toString();
+    return out;
   }
 
   // Nur überschreiben, wenn neue Attribution in der URL ist — sonst würde ein
   // Re-Visit ohne Params die ursprüngliche Quelle aus localStorage löschen.
-  if (extractAttribution(window.location.search)) {
+  const attributionFromUrl = extractAttribution(window.location.search);
+  if (Object.keys(attributionFromUrl).length) {
     try {
-      localStorage.setItem(ATTRIBUTION_STORAGE_KEY, extractAttribution(window.location.search));
+      localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(attributionFromUrl));
     } catch (e) { /* private mode */ }
   }
 
@@ -127,13 +128,11 @@
     const merged = new URLSearchParams(window.location.search);
 
     try {
-      const stored = localStorage.getItem(ATTRIBUTION_STORAGE_KEY);
-      if (stored) {
-        new URLSearchParams(stored).forEach((v, k) => {
-          if (!merged.has(k)) merged.set(k, v);
-        });
-      }
-    } catch (e) { /* private mode */ }
+      const stored = JSON.parse(localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || '{}');
+      Object.entries(stored).forEach(([k, v]) => {
+        if (!merged.has(k)) merged.set(k, v);
+      });
+    } catch (e) { /* private mode oder invalid JSON */ }
 
     ['hubspotutk', '__hstc', '__hssc', '__hsfp'].forEach((name) => {
       const v = getCookie(name);
