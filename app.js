@@ -220,12 +220,14 @@
   }
 
   function showMeetingIframe(submissionValues, meetingUrl, showroomName) {
-    // Guard: ohne valide Meeting-URL kein Redirect, kein iframe — sonst
-    // navigieren wir versehentlich relativ und bleiben auf bauherren.
     meetingUrl = meetingUrl || currentMeetingUrl;
     showroomName = showroomName || currentShowroomName;
-    if (!meetingUrl || !/^https?:\/\//i.test(meetingUrl)) {
-      if (window.console) console.warn('[Termin] showMeetingIframe: ungültige meetingUrl, abgebrochen:', meetingUrl);
+    if (!meetingUrl) {
+      // Keine URL → User sieht eine sichtbare Fehlermeldung statt der hängenden
+      // HubSpot-Thank-You-Message, damit klar ist, dass was schief lief.
+      terminModalBody.innerHTML =
+        '<p class="termin-modal-loading">Termin-URL nicht verfügbar — bitte Modal schließen und Showroom erneut auswählen.</p>';
+      if (window.console) console.warn('[Termin] showMeetingIframe: meetingUrl leer');
       return;
     }
 
@@ -273,15 +275,33 @@
     // volle Seite, nicht eingebettet (verifiziert auf iOS Safari). Der Lead
     // liegt durch den Form-Submit bereits im CRM, Attribution ist sicher.
     if (window.matchMedia('(max-width: 768px)').matches) {
-      // Sichtbarer Fallback-Link, falls iOS die Auto-Navigation aus dem
-      // async Submit-Handler blockiert (passiert wenn der User-Gesture-Kontext
-      // verloren ist) — User kann dann manuell antippen.
+      // iOS Safari blockiert window.location.href aus async-Handlern, wenn
+      // der User-Gesture-Kontext verloren ist. Drei Strategien parallel:
+      //   1) Sichtbarer Tap-Link im Modal als verlässlicher Fallback
+      //   2) Programmatischer Click auf einen <a>-Element (iOS-permissiver
+      //      als location.href in async-Kontexten)
+      //   3) location.href via setTimeout als Belt-and-Suspenders
       terminModalBody.innerHTML =
         '<p class="termin-modal-loading">Weiterleitung zum Kalender …</p>' +
-        '<p style="margin-top:1rem;text-align:center;">' +
-        '<a href="' + url + '" style="color:var(--color-action);font-weight:600;">' +
-        'Hier tippen, falls die Weiterleitung nicht startet</a></p>';
-      window.location.href = url;
+        '<p style="margin-top:1.25rem;text-align:center;font-size:15px;line-height:1.5;">' +
+        'Falls die Weiterleitung nicht automatisch startet:<br>' +
+        '<a href="' + url + '" style="display:inline-block;margin-top:0.5rem;padding:10px 18px;background:var(--color-action);color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">Zum Kalender</a>' +
+        '</p>';
+
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.rel = 'noopener';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (e) { /* fallback unten */ }
+
+      setTimeout(() => {
+        if (!document.hidden) window.location.href = url;
+      }, 60);
+
       return;
     }
 
