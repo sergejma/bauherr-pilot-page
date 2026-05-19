@@ -79,11 +79,9 @@
   }
 
   // ---------- Attribution-Persistenz (UTM / Click-IDs) ----------
-  // Warum: HubSpot kann UTMs nicht aus dem Meeting-Embed-iframe einer anderen
-  // Subdomain auslesen (Third-Party-Cookie-Restrictions). Wir leiten deshalb
-  // per Top-Level-Navigation auf die HubSpot-Meetings-Subdomain weiter und
-  // hängen die Marketing-Params an die URL. localStorage puffert die Werte,
-  // falls der User die LP mit ?utm_* öffnet, aber erst später bucht.
+  // Marketing-Params beim ersten Visit in localStorage puffern, damit ein User,
+  // der mit ?utm_* landet aber erst nach Reload/Re-Visit bucht, die Attribution
+  // trotzdem an die Meeting-Subdomain mitbringt.
   const ATTRIBUTION_STORAGE_KEY = 'spa_utm';
   const ATTRIBUTION_KEYS = [
     'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
@@ -102,28 +100,57 @@
 
   // Nur überschreiben, wenn neue Attribution in der URL ist — sonst würde ein
   // Re-Visit ohne Params die ursprüngliche Quelle aus localStorage löschen.
-  const attributionFromUrl = extractAttribution(window.location.search);
-  if (attributionFromUrl) {
-    try { localStorage.setItem(ATTRIBUTION_STORAGE_KEY, attributionFromUrl); } catch (e) { /* private mode */ }
+  if (extractAttribution(window.location.search)) {
+    try {
+      localStorage.setItem(ATTRIBUTION_STORAGE_KEY, extractAttribution(window.location.search));
+    } catch (e) { /* private mode */ }
   }
 
-  function getAttributionQuery() {
-    if (attributionFromUrl) return attributionFromUrl;
-    try { return localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || ''; } catch (e) { return ''; }
+  function getCookie(name) {
+    const match = document.cookie.split('; ').find((c) => c.startsWith(name + '='));
+    return match ? match.split('=').slice(1).join('=') : '';
   }
 
   // ---------- Showroom-Auswahl → Top-Level-Redirect auf HubSpot-Meetings ----------
   // KEIN iframe-Embed: der iframe würde die hubspotutk-Cookie nicht lesen
   // und damit die komplette Attribution-Kette (erste Seite, Referrer, UTMs)
   // unterbrechen. Top-Level-Navigation auf *.spadeluxe.de teilt die Cookie.
+  //
+  // Wir hängen drei Schichten an die Meeting-URL:
+  //   1) Alle aktuellen URL-Params der LP (UTMs, gclid, beliebige Custom-Params)
+  //   2) localStorage-Backfill für Attribution, die in dieser Session schon
+  //      einmal in der URL stand, aktuell aber nicht mehr (Re-Visit, Reload)
+  //   3) HubSpot Cross-Domain-Cookies — die Meeting-Seite stitcht damit die
+  //      Session an den LP-Visit, sodass "Erste angezeigte Seite" + native
+  //      Source-Props (hs_analytics_first_referrer …) korrekt befüllt werden
+  function buildRedirectQuery() {
+    const merged = new URLSearchParams(window.location.search);
+
+    try {
+      const stored = localStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+      if (stored) {
+        new URLSearchParams(stored).forEach((v, k) => {
+          if (!merged.has(k)) merged.set(k, v);
+        });
+      }
+    } catch (e) { /* private mode */ }
+
+    ['hubspotutk', '__hstc', '__hssc', '__hsfp'].forEach((name) => {
+      const v = getCookie(name);
+      if (v) merged.set(name, v);
+    });
+
+    return merged.toString();
+  }
+
   document.querySelectorAll('.showroom-card').forEach((card) => {
     card.addEventListener('click', () => {
       const meetingUrl = card.dataset.meeting;
       const showroomName = card.dataset.showroom;
       if (!meetingUrl) return;
 
-      const attribution = getAttributionQuery();
-      const targetUrl = attribution ? meetingUrl + '?' + attribution : meetingUrl;
+      const qs = buildRedirectQuery();
+      const targetUrl = qs ? meetingUrl + '?' + qs : meetingUrl;
 
       if (window.gtag) {
         window.gtag('event', 'showroom_selected', {
