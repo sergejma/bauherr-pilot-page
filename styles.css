@@ -1419,9 +1419,15 @@ section.alt .variant-a-note { background: var(--color-cream); }
   font-size: 22px;
 }
 .termin-modal-sub {
-  margin: 0;
-  font-size: 14px;
-  color: var(--color-stone);
+  margin: 0.5rem 0 0;
+  padding: 10px 14px;
+  background: var(--color-action-bg);
+  border-left: 3px solid var(--color-action);
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--color-ink);
 }
 
 .termin-modal-body {

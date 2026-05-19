@@ -144,7 +144,7 @@
 
     terminModalEyebrow.textContent = regionLabel || 'Showroom';
     terminModalTitle.textContent = 'Termin im Showroom ' + showroomName;
-    terminModalSub.textContent = 'Kurz Ihre Kontaktdaten — danach wählen Sie direkt Ihren Wunschtermin.';
+    terminModalSub.textContent = 'Bitte tragen Sie zuerst Ihre Kontaktdaten ein. Danach wählen Sie Ihren Wunschtermin.';
     terminModalSub.hidden = false;
 
     // Form-Container per DOM-API anhängen — HubSpots V3-Embed erkennt
