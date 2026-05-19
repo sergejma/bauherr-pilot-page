@@ -147,13 +147,31 @@
     terminModalSub.textContent = 'Kurz Ihre Kontaktdaten — danach wählen Sie direkt Ihren Wunschtermin.';
     terminModalSub.hidden = false;
 
-    // Frischer Form-Container; HubSpots Embed-Script entdeckt neue
-    // .hs-form-frame-Divs automatisch und rendert sie.
-    terminModalBody.innerHTML =
-      '<div class="termin-modal-loading">Formular lädt …</div>' +
-      '<div class="hs-form-frame" data-region="' + HUBSPOT_FORM_REGION +
-      '" data-form-id="' + HUBSPOT_FORM_ID +
-      '" data-portal-id="' + HUBSPOT_FORM_PORTAL_ID + '"></div>';
+    // Form-Container per DOM-API anhängen — HubSpots V2-Embed erkennt
+    // .hs-form-frame-Divs nur zuverlässig, wenn sie per appendChild/insertBefore
+    // in den DOM kommen. innerHTML-Injection wird vom Scanner übersehen → leer.
+    terminModalBody.innerHTML = '';
+
+    const loading = document.createElement('div');
+    loading.className = 'termin-modal-loading';
+    loading.textContent = 'Formular lädt …';
+    terminModalBody.appendChild(loading);
+
+    const frame = document.createElement('div');
+    frame.className = 'hs-form-frame';
+    frame.setAttribute('data-region', HUBSPOT_FORM_REGION);
+    frame.setAttribute('data-form-id', HUBSPOT_FORM_ID);
+    frame.setAttribute('data-portal-id', HUBSPOT_FORM_PORTAL_ID);
+    terminModalBody.appendChild(frame);
+
+    // Loader entfernen, sobald HubSpot das Form rendert (form-Tag oder iframe erscheint)
+    const obs = new MutationObserver(() => {
+      if (frame.querySelector('form, iframe')) {
+        loading.remove();
+        obs.disconnect();
+      }
+    });
+    obs.observe(frame, { childList: true, subtree: true });
 
     terminModal.classList.remove('termin-modal--meeting');
     terminModal.hidden = false;
@@ -229,16 +247,22 @@
   });
 
   // HubSpot-Form-Submitted → Swap auf Meeting-iframe.
-  // HubSpots V2-Embed kommuniziert per postMessage; submissionValues enthält
-  // alle Felder (auch hidden UTMs) als { fieldName: value }.
+  // HubSpots V2-Embed liefert submissionValues als Array von { name, value },
+  // nicht als { name: value }-Map — wir mappen erst, dann an showMeetingIframe.
   window.addEventListener('message', (e) => {
     const msg = e.data;
     if (!msg || msg.type !== 'hsFormCallback') return;
-    if (msg.eventName !== 'onFormSubmitted' && msg.eventName !== 'onFormSubmit') return;
-    if (msg.id && msg.id !== HUBSPOT_FORM_ID) return;
+    if (msg.eventName !== 'onFormSubmitted') return;
     if (!currentMeetingUrl) return;
 
-    const values = msg.data && msg.data.submissionValues ? msg.data.submissionValues : {};
+    const values = {};
+    const submissionValues = msg.data && msg.data.submissionValues;
+    if (Array.isArray(submissionValues)) {
+      submissionValues.forEach((f) => { if (f && f.name) values[f.name] = f.value; });
+    } else if (submissionValues && typeof submissionValues === 'object') {
+      // Defensiv: falls HubSpot das Format mal als Map liefert
+      Object.assign(values, submissionValues);
+    }
 
     if (window.gtag) {
       window.gtag('event', 'form_submit', {
