@@ -168,28 +168,22 @@
     frame.addEventListener('hs-form-event:on-submission:success', async (ev) => {
       const detail = ev.detail || {};
       const values = {};
-      let rawFieldValues = null;
       try {
         const api = window.HubspotFormsV4;
         if (api && typeof api.getForms === 'function') {
           const forms = api.getForms();
           const form = forms.find((f) => typeof f.getFormId === 'function' && f.getFormId() === detail.formId);
           if (form && typeof form.getFormFieldValues === 'function') {
-            rawFieldValues = await form.getFormFieldValues();
-            if (Array.isArray(rawFieldValues)) {
-              rawFieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
-            } else if (rawFieldValues && typeof rawFieldValues === 'object') {
-              Object.assign(values, rawFieldValues);
+            const fieldValues = await form.getFormFieldValues();
+            if (Array.isArray(fieldValues)) {
+              fieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
+            } else if (fieldValues && typeof fieldValues === 'object') {
+              Object.assign(values, fieldValues);
             }
           }
         }
       } catch (err) {
         if (window.console) console.warn('[Termin] HubSpot getFormFieldValues failed:', err);
-      }
-
-      if (window.console) {
-        console.log('[Termin] raw fieldValues from HubSpot:', rawFieldValues);
-        console.log('[Termin] mapped values:', values);
       }
 
       if (window.gtag) {
@@ -257,7 +251,15 @@
     });
 
     const url = currentMeetingUrl + '?' + params.toString();
-    if (window.console) console.log('[Termin] Calendar iframe URL:', url);
+
+    // Auf Mobile: Top-Level-Navigation statt iframe-im-Modal.
+    // HubSpots Mobile-Meetings-Widget honoriert URL-Pre-Fill-Params nur als
+    // volle Seite, nicht eingebettet (verifiziert auf iOS Safari). Der Lead
+    // liegt durch den Form-Submit bereits im CRM, Attribution ist sicher.
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      window.location.href = url;
+      return;
+    }
 
     terminModalEyebrow.textContent = currentShowroomName;
     terminModalTitle.textContent = 'Wunschtermin wählen';
