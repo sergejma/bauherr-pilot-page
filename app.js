@@ -28,6 +28,27 @@
     window.gtag('config', GA_ID, { anonymize_ip: true });
   }
 
+  // ---------- HubSpot Tracking (consent-gated) ----------
+  let hubspotLoaded = false;
+
+  function loadHubSpotTracking() {
+    if (hubspotLoaded) return;
+    hubspotLoaded = true;
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.id = 'hs-script-loader';
+    script.async = true;
+    script.defer = true;
+    script.src = '//js-eu1.hs-scripts.com/25504893.js';
+    document.head.appendChild(script);
+  }
+
+  function loadConsentedTrackers() {
+    loadGoogleAnalytics();
+    loadHubSpotTracking();
+  }
+
   // ---------- DSGVO Cookie-Banner ----------
   const cookieBanner = document.getElementById('cookie-banner');
   if (cookieBanner) {
@@ -38,8 +59,8 @@
         cookieBanner.setAttribute('aria-hidden', 'false');
       }, 800);
     } else if (stored === 'all') {
-      // Returning visitor mit Volleinwilligung → GA direkt laden
-      loadGoogleAnalytics();
+      // Returning visitor mit Volleinwilligung → Tracker direkt laden
+      loadConsentedTrackers();
     }
     cookieBanner.querySelectorAll('[data-cookie]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -51,7 +72,7 @@
         cookieBanner.classList.remove('visible');
         cookieBanner.setAttribute('aria-hidden', 'true');
         if (choice === 'all') {
-          loadGoogleAnalytics();
+          loadConsentedTrackers();
         }
       });
     });
