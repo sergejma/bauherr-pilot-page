@@ -9,6 +9,12 @@
 (() => {
   'use strict';
 
+  // ---------- Scroll-Restoration deaktivieren ----------
+  // Browser/WebView (besonders Android Instagram-WebView) restoren sonst die
+  // letzte Scroll-Position und springen damit u.U. direkt in die Mitte der
+  // Seite — Ad-User soll immer am Hero starten.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
   // ---------- Google Analytics (consent-gated) ----------
   const GA_ID = 'G-1TQQ5LLNJF';
   let gaLoaded = false;
