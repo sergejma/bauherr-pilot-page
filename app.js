@@ -23,6 +23,11 @@
   if (!window.location.hash) {
     const htmlEl = document.documentElement;
     htmlEl.style.scrollBehavior = 'auto';
+    // overflow-anchor:none verhindert Chromes Scroll-Anchoring, das die
+    // Scroll-Position verschiebt, wenn Hero-Content (Bilder, Fonts) nachladet
+    // und die Layout-Höhe shiftet.
+    htmlEl.style.overflowAnchor = 'none';
+    document.body && (document.body.style.overflowAnchor = 'none');
 
     let userInteracted = false;
     ['touchstart', 'mousedown', 'wheel', 'keydown'].forEach((evt) => {
@@ -32,9 +37,18 @@
     const forceTop = () => { if (!userInteracted) window.scrollTo(0, 0); };
     document.addEventListener('DOMContentLoaded', forceTop);
     window.addEventListener('load', forceTop);
-    setTimeout(forceTop, 300);
-    setTimeout(forceTop, 800);
-    setTimeout(() => { htmlEl.style.scrollBehavior = ''; }, 1500);
+
+    // Kontinuierliches Polling für 3s — fängt späte Scroll-Sprünge ab, die
+    // nach +800ms passieren (Insta-WebView Lade-Quirks, late Layout-Shifts).
+    const watchEnd = Date.now() + 3000;
+    const interval = setInterval(() => {
+      if (Date.now() > watchEnd || userInteracted) {
+        clearInterval(interval);
+        htmlEl.style.scrollBehavior = '';
+        return;
+      }
+      if (window.scrollY > 30) window.scrollTo(0, 0);
+    }, 80);
   }
 
   // ---------- Google Analytics (consent-gated) ----------
@@ -228,7 +242,17 @@
         });
       }
 
-      showMeetingIframe(values, meetingUrlSnapshot, showroomNameSnapshot);
+      // Zwischen-Status, damit User nicht hängen sieht während wir warten
+      terminModalBody.innerHTML =
+        '<p class="termin-modal-loading">Termin wird vorbereitet …</p>';
+
+      // 1.5s Delay: HubSpot setzt nach Form-Submit den hubspotutk-Contact-Cookie
+      // asynchron. Wenn wir den Meeting-iframe sofort laden, kennt HubSpot den
+      // Kontakt noch nicht und der Pre-Fill schlägt fehl. Diese Pause lässt die
+      // Tracking-Pipeline ihre Cookie-Schreibvorgänge abschließen.
+      setTimeout(() => {
+        showMeetingIframe(values, meetingUrlSnapshot, showroomNameSnapshot);
+      }, 1500);
     });
 
     terminModalBody.appendChild(frame);
@@ -282,13 +306,29 @@
     const phone = findValue(['phone', 'phonenumber', 'phone_number', 'mobilephone']);
 
     // HubSpot-Meetings akzeptiert für Pre-Fill verschiedene Param-Schreibweisen.
-    // Desktop-Widget normalisiert sie, Mobile-Widget (iOS Safari) ist strenger
-    // und greift nur die lowercase-Property-Namen — daher beide Varianten setzen.
+    // Desktop-Widget normalisiert sie, Mobile-Widget ist strenger — daher
+    // mehrere Varianten parallel mitgeben, damit irgendeine greift.
     const params = new URLSearchParams({ embed: 'true' });
-    if (firstName) { params.set('firstName', firstName); params.set('firstname', firstName); }
-    if (lastName) { params.set('lastName', lastName); params.set('lastname', lastName); }
-    if (email) params.set('email', email);
-    if (phone) params.set('phone', phone);
+    if (firstName) {
+      params.set('firstName', firstName);
+      params.set('firstname', firstName);
+      params.set('first_name', firstName);
+    }
+    if (lastName) {
+      params.set('lastName', lastName);
+      params.set('lastname', lastName);
+      params.set('last_name', lastName);
+    }
+    if (email) {
+      params.set('email', email);
+      params.set('email_address', email);
+    }
+    if (phone) {
+      params.set('phone', phone);
+      params.set('phonenumber', phone);
+      params.set('phone_number', phone);
+      params.set('mobilephone', phone);
+    }
 
     // Pre-Fill für native HubSpot-Source-Props auf der Meeting-Seite
     ATTRIBUTION_KEYS.forEach((k) => {
