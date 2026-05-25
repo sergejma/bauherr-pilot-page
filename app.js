@@ -9,11 +9,33 @@
 (() => {
   'use strict';
 
-  // ---------- Scroll-Restoration deaktivieren ----------
-  // Browser/WebView (besonders Android Instagram-WebView) restoren sonst die
-  // letzte Scroll-Position und springen damit u.U. direkt in die Mitte der
-  // Seite — Ad-User soll immer am Hero starten.
+  // ---------- Scroll-Restoration + Force-Top für Ad-User ----------
+  // Instagram-WebView (Android + iOS) springt bei manchen Ad-Klicks ohne
+  // ersichtlichen Grund in die Mitte der Seite — verifiziert beim Klick aus
+  // Insta-Ads. Scroll-Restoration auf 'manual' reicht nicht; wir holen den
+  // User aktiv zurück, solange er noch nicht selbst gescrollt/getappt hat.
+  //
+  // Gated durch: kein Hash in URL + keine User-Interaktion bisher.
+  // Smooth-Scroll wird temporär ausgeschaltet, damit der Reset nicht als
+  // animierter "Yank-back" sichtbar wird.
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  if (!window.location.hash) {
+    const htmlEl = document.documentElement;
+    htmlEl.style.scrollBehavior = 'auto';
+
+    let userInteracted = false;
+    ['touchstart', 'mousedown', 'wheel', 'keydown'].forEach((evt) => {
+      window.addEventListener(evt, () => { userInteracted = true; }, { once: true, passive: true });
+    });
+
+    const forceTop = () => { if (!userInteracted) window.scrollTo(0, 0); };
+    document.addEventListener('DOMContentLoaded', forceTop);
+    window.addEventListener('load', forceTop);
+    setTimeout(forceTop, 300);
+    setTimeout(forceTop, 800);
+    setTimeout(() => { htmlEl.style.scrollBehavior = ''; }, 1500);
+  }
 
   // ---------- Google Analytics (consent-gated) ----------
   const GA_ID = 'G-1TQQ5LLNJF';
