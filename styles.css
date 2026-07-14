@@ -574,6 +574,28 @@ section.alt .reviews-block { background: #fff; }
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* ---------- KI-Kennzeichnung · Art. 50 Abs. 4 KI-VO (EU) 2024/1689 ----------
+   Pflicht ab 02.08.2026: Label muss beim ersten Kontakt direkt am Bild
+   sichtbar sein — ein Hinweis nur im Footer/Impressum genügt nicht. */
+.ai-label {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(26, 26, 26, 0.72);
+  color: rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
 .hero-media .media-slot {
   border-radius: 16px;
   box-shadow: 0 20px 60px -20px rgba(26, 26, 26, 0.18);
@@ -966,6 +988,7 @@ section.alt .compare-card { background: #fff; }
 
 /* ---------- Block 08 · Offer ---------- */
 .offer-visual {
+  position: relative;
   margin: 2rem 0 1.5rem;
   border-radius: 14px;
   overflow: hidden;
