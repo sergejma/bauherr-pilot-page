@@ -756,15 +756,16 @@
     </p>
 
     <div class="form-wrap" id="termin-form">
-      <!-- Showroom-Auswahl → öffnet den Zoho-Bookings-Kalender des Showrooms im Modal (iframe).
-           data-booking = Zoho-Bookings-Buchungsseite des Showrooms. Platzhalter „TODO-…" zeigt
-           im Modal automatisch den Telefon-Fallback statt eines leeren Kalenders. -->
+      <!-- Showroom-Auswahl → öffnet die Zoho-CRM-Buchungsseite des Showrooms im Modal (iframe).
+           data-booking = CRM-Buchungsseite „Ausstellung <Ort> · Bauherren" (crm.zoho.eu/bookings).
+           Zuordnung: Karte Nürnberg → Buchungsseite Fürth, Karte Ludwigsburg → Buchungsseite Esslingen.
+           Ohne gültige URL zeigt das Modal automatisch den Telefon-Fallback. -->
       <div class="form-step" id="step-showroom">
         <h3>Termin im Showroom buchen</h3>
         <p class="form-sub">In welchem Showroom soll die Beratung stattfinden?</p>
 
         <div class="showroom-grid">
-          <button type="button" class="showroom-card" data-showroom="Nürnberg" data-region="Region Nürnberg / Fürth" data-booking="TODO-zoho-bookings-link-nuernberg">
+          <button type="button" class="showroom-card" data-showroom="Nürnberg" data-region="Region Nürnberg / Fürth" data-booking="https://crm.zoho.eu/bookings/AusstellungF%C3%BCrth%C2%B7Bauherren?rid=cb153eac30afad5f61b289c639f5e993602fae555d976e7025a7aa54a3064e25b019f3c97d5b0b9adbf9f07e44691a5fgidd6b015fd803f1272ebc77460aec561bf2355771d29e9b67d462287aebdc24bdd">
             <span class="showroom-info">
               <span class="showroom-name">Nürnberg</span>
               <span class="showroom-region">Region Franken</span>
@@ -772,7 +773,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="München" data-region="Region München" data-booking="TODO-zoho-bookings-link-muenchen">
+          <button type="button" class="showroom-card" data-showroom="München" data-region="Region München" data-booking="https://crm.zoho.eu/bookings/AusstellungM%C3%BCnchen%C2%B7Bauherren?rid=380590d5a00c60a0d31e5e3fd51cdb4b1fd4f35138ad8933a0d25368830a945c6f6292aad14319b66b912787a51ad132gid2f956c5cee73db5f2b13775827f7147d02e0b4fc7776725eb656a70860ea8e87">
             <span class="showroom-info">
               <span class="showroom-name">München</span>
               <span class="showroom-region">Region Oberbayern</span>
@@ -780,7 +781,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Ludwigsburg" data-region="Region Stuttgart" data-booking="TODO-zoho-bookings-link-ludwigsburg">
+          <button type="button" class="showroom-card" data-showroom="Ludwigsburg" data-region="Region Stuttgart" data-booking="https://crm.zoho.eu/bookings/AusstellungEsslingen%C2%B7Bauherren?rid=55d170a1c94661dae7cbbf514b6b9bb5465667d6c086f01b7e2871512953e035de72b688c3d8fbf9ea92423ec20e7eb1gid16b252437e738775a311685461d79400dc41171ddbf5c27fd3cfd68217d76f5e">
             <span class="showroom-info">
               <span class="showroom-name">Ludwigsburg</span>
               <span class="showroom-region">Region Stuttgart</span>
@@ -788,7 +789,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Rüsselsheim" data-region="Region Frankfurt" data-booking="TODO-zoho-bookings-link-ruesselsheim">
+          <button type="button" class="showroom-card" data-showroom="Rüsselsheim" data-region="Region Frankfurt" data-booking="https://crm.zoho.eu/bookings/AusstellungR%C3%BCsselsheim%C2%B7Bauherren?rid=7fa124c717214cf64adf0c14b1bd5d1d17248c653af4f946c13e0b3e1db65ecebbacdba4abce8cf3f42034207bdce214gid977beed998c8d6ff70e6b41d342fbb0e9b9c9fe91c6520a965c34fd740e72a3e">
             <span class="showroom-info">
               <span class="showroom-name">Rüsselsheim</span>
               <span class="showroom-region">Region Frankfurt</span>
@@ -796,7 +797,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Senden" data-region="Münsterland" data-booking="TODO-zoho-bookings-link-senden">
+          <button type="button" class="showroom-card" data-showroom="Senden" data-region="Münsterland" data-booking="https://crm.zoho.eu/bookings/AusstellungSenden%C2%B7Bauherren?rid=960bf80ba1d74e3ff835d04cfcaa26c5235c5d384902dfe71cd59cd8891498bfdce92fda563d56c924961684755ac858gid1addd8e743200cdc0ca21e85fd1612d3d0e12d6e0b15a9bcae0b3e8474a71f78">
             <span class="showroom-info">
               <span class="showroom-name">Senden</span>
               <span class="showroom-region">Münsterland</span>
@@ -804,7 +805,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Hamburg" data-region="Region Hamburg" data-booking="TODO-zoho-bookings-link-hamburg">
+          <button type="button" class="showroom-card" data-showroom="Hamburg" data-region="Region Hamburg" data-booking="https://crm.zoho.eu/bookings/AusstellungHamburg%C2%B7Bauherren?rid=cd4da53c32995273804cacdd84cc881af8e952844223c6a8b8d9dc2f9b78a2c45f289b4913ba13a4b2b334833725eaa1gide0b07e50446e96c5a2e2225b595d56cae1dfcb35c0d980acc2e79b355b7bd0f8">
             <span class="showroom-info">
               <span class="showroom-name">Hamburg</span>
               <span class="showroom-region">Region Hamburg</span>

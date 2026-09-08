@@ -106,10 +106,10 @@
   }
 
   // ---------- Attribution-Persistenz (UTM / Click-IDs) ----------
-  // Marketing-Params beim ersten Visit in localStorage puffern. Beim Öffnen des
-  // Zoho-Bookings-Kalenders hängen wir sie an die Booking-URL: Zoho Bookings
-  // liest utm_* und gclid aus seiner eigenen URL und reicht sie an die
-  // GA4-Integration sowie an die Bestätigungsseite (danke.html) weiter.
+  // Marketing-Params beim ersten Visit in localStorage puffern und beim Öffnen
+  // des Kalenders an die Booking-URL hängen. Die App „Zoho Bookings" wertet
+  // utm_*/gclid aus; die CRM-Buchungsseiten aktuell nicht — kostet nichts,
+  // bleibt als Vorbereitung drin.
   const ATTRIBUTION_STORAGE_KEY = 'spa_utm';
   const ATTRIBUTION_KEYS = [
     'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
@@ -146,12 +146,13 @@
     return Object.assign({}, loadStoredAttribution(), attributionFromUrl);
   }
 
-  // ---------- Termin-Modal: Zoho Bookings ----------
-  // Ablauf: Showroom-Karte → Modal mit Zoho-Bookings-Kalender (iframe).
-  // Kontaktdaten erfasst Zoho Bookings selbst, ein Pre-Form ist nicht mehr nötig.
-  // Nach der Buchung leitet Zoho Bookings (Einstellung „Eigene Bestätigungsseite")
-  // innerhalb des iframes auf danke.html weiter. Die Seite ist same-origin und
-  // meldet die Buchung per postMessage an diese Seite → GA4-Event + Erfolgs-UI.
+  // ---------- Termin-Modal: Zoho-CRM-Buchungsseite ----------
+  // Ablauf: Showroom-Karte → Modal mit der CRM-Buchungsseite (crm.zoho.eu/bookings)
+  // im iframe. Kontaktdaten erfasst Zoho selbst, ein Pre-Form ist nicht mehr nötig;
+  // die Bestätigung zeigt Zoho im iframe.
+  // Optional: Falls der Kalender eine eigene Bestätigungs-URL unterstützt (App
+  // „Zoho Bookings"), auf danke.html zeigen lassen — die Seite ist same-origin
+  // und meldet die Buchung per postMessage → GA4-Event + Erfolgs-UI im Modal.
   const PHONE_DISPLAY = '02597 4753015';
   const PHONE_TEL = 'tel:+4925974753015';
   const BOOKING_CONFIRMED_MESSAGE = 'spa:booking-confirmed';
@@ -170,9 +171,9 @@
   }
 
   function buildBookingUrl(baseUrl) {
-    // Zoho-Bookings-URLs sind Hash-Router-URLs (…/#/workspace/service).
-    // Prefill- und UTM-Parameter gehören HINTER den Hash-Pfad, sonst sieht die
-    // Bookings-App sie nicht.
+    // CRM-Buchungsseiten haben eine normale Query (…?rid=…) → mit & anhängen.
+    // URLs der App „Zoho Bookings" sind Hash-Router-URLs (…/#/workspace/service):
+    // dort gehören die Parameter HINTER den Hash-Pfad.
     const params = new URLSearchParams();
     Object.entries(currentAttribution()).forEach(([k, v]) => params.set(k, v));
     const qs = params.toString();
