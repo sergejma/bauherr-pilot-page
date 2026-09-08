@@ -1366,7 +1366,7 @@ section.alt .variant-a-note { background: var(--color-cream); }
 #step-showroom { scroll-margin-top: 80px; }
 
 /* ============================================================
-   Termin-Modal (HubSpot Pre-Form → Meeting-iframe)
+   Termin-Modal (Zoho-Bookings-Kalender im iframe)
    ============================================================ */
 .termin-modal {
   position: fixed;
@@ -1457,10 +1457,6 @@ section.alt .variant-a-note { background: var(--color-cream); }
   padding: 16px 28px 28px;
   min-height: 200px;
 }
-.termin-modal-body .hs-form-frame {
-  /* HubSpot rendert hierin sein iframe — Höhe kommt vom Embed selbst */
-  width: 100%;
-}
 .termin-modal-body iframe {
   width: 100%;
   border: 0;
@@ -1492,7 +1488,24 @@ body.modal-open { overflow: hidden; }
 
 /* Calendar-Iframe-Variante: größere Mindesthöhe */
 .termin-modal--meeting .termin-modal-card { max-width: 920px; }
-.termin-modal--meeting .termin-modal-body iframe { min-height: 720px; }
+.termin-modal--meeting .termin-modal-body iframe {
+  min-height: 720px;
+  background: #fff;
+  border-radius: 6px;
+}
+.termin-modal-foot {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-stone);
+  text-align: center;
+}
+.termin-modal-foot a { color: var(--color-ink); text-decoration: underline; }
+.termin-modal-fallback { font-family: inherit; font-size: 16px; line-height: 1.5; text-align: center; padding: 0 12px; }
+.termin-modal-fallback a { color: var(--color-action); font-weight: 600; white-space: nowrap; }
+@media (max-width: 600px) {
+  .termin-modal--meeting .termin-modal-body iframe { min-height: calc(100vh - 190px); }
+}
 
 /* Marken-Strip */
 .brands {

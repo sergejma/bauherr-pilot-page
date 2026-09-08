@@ -21,15 +21,13 @@
 
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- HubSpot Forms Embed (rendert Modal-Form für Termin-Buchung) -->
-  <script src="https://js-eu1.hsforms.net/forms/embed/25504893.js" defer></script>
-
   <!--
     Tracking-Strategie:
-    - GA4 (G-1TQQ5LLNJF) + HubSpot (Portal 25504893, hs-scripts.com)
-      werden consent-gated via app.js geladen, nur nach 'Alle akzeptieren'
-      im DSGVO-Banner (Strict Opt-in).
-    - Events: cta_click (data-cta) + showroom_selected.
+    - GA4 (G-1TQQ5LLNJF) wird consent-gated via app.js geladen, nur nach
+      'Alle akzeptieren' im DSGVO-Banner (Strict Opt-in).
+    - HubSpot-Tracking entfernt (CRM-Wechsel zu Zoho, Sept. 2026).
+    - Events: cta_click (data-cta), showroom_selected, termin_gebucht
+      (gemeldet von danke.html, der Zoho-Bookings-Bestätigungsseite).
     - TODO Phase 2: Meta Pixel ebenfalls consent-gated nachziehen.
   -->
 </head>
@@ -758,13 +756,15 @@
     </p>
 
     <div class="form-wrap" id="termin-form">
-      <!-- Showroom-Auswahl → leitet per Top-Level-Navigation auf das HubSpot Meeting-Tool weiter (Cross-Domain-Tracking erfordert kein iframe) -->
+      <!-- Showroom-Auswahl → öffnet den Zoho-Bookings-Kalender des Showrooms im Modal (iframe).
+           data-booking = Zoho-Bookings-Buchungsseite des Showrooms. Platzhalter „TODO-…" zeigt
+           im Modal automatisch den Telefon-Fallback statt eines leeren Kalenders. -->
       <div class="form-step" id="step-showroom">
         <h3>Termin im Showroom buchen</h3>
         <p class="form-sub">In welchem Showroom soll die Beratung stattfinden?</p>
 
         <div class="showroom-grid">
-          <button type="button" class="showroom-card" data-showroom="Nürnberg" data-region="Region Nürnberg / Fürth" data-meeting="https://meetings-eu1.hubspot.com/patrick-hanke/ausstellung-nurnberg">
+          <button type="button" class="showroom-card" data-showroom="Nürnberg" data-region="Region Nürnberg / Fürth" data-booking="TODO-zoho-bookings-link-nuernberg">
             <span class="showroom-info">
               <span class="showroom-name">Nürnberg</span>
               <span class="showroom-region">Region Franken</span>
@@ -772,7 +772,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="München" data-region="Region München" data-meeting="https://vertrieb.spadeluxe.de/meetings/nico-ehlers/ausstellung-munchen">
+          <button type="button" class="showroom-card" data-showroom="München" data-region="Region München" data-booking="TODO-zoho-bookings-link-muenchen">
             <span class="showroom-info">
               <span class="showroom-name">München</span>
               <span class="showroom-region">Region Oberbayern</span>
@@ -780,7 +780,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Ludwigsburg" data-region="Region Stuttgart" data-meeting="https://hub.spadeluxe.de/meetings/sergej-markwart/ausstellung-ludwigsburg">
+          <button type="button" class="showroom-card" data-showroom="Ludwigsburg" data-region="Region Stuttgart" data-booking="TODO-zoho-bookings-link-ludwigsburg">
             <span class="showroom-info">
               <span class="showroom-name">Ludwigsburg</span>
               <span class="showroom-region">Region Stuttgart</span>
@@ -788,7 +788,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Rüsselsheim" data-region="Region Frankfurt" data-meeting="https://vertrieb.spadeluxe.de/meetings/tobias-schweitzer/ausstellung-ruesselsheim">
+          <button type="button" class="showroom-card" data-showroom="Rüsselsheim" data-region="Region Frankfurt" data-booking="TODO-zoho-bookings-link-ruesselsheim">
             <span class="showroom-info">
               <span class="showroom-name">Rüsselsheim</span>
               <span class="showroom-region">Region Frankfurt</span>
@@ -796,7 +796,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Senden" data-region="Münsterland" data-meeting="https://hub.spadeluxe.de/meetings/sergej-markwart/ausstellung-senden">
+          <button type="button" class="showroom-card" data-showroom="Senden" data-region="Münsterland" data-booking="TODO-zoho-bookings-link-senden">
             <span class="showroom-info">
               <span class="showroom-name">Senden</span>
               <span class="showroom-region">Münsterland</span>
@@ -804,7 +804,7 @@
             <span class="showroom-arrow" aria-hidden="true">→</span>
           </button>
 
-          <button type="button" class="showroom-card" data-showroom="Hamburg" data-region="Region Hamburg" data-meeting="https://meetings-eu1.hubspot.com/ralph-dieckmann/ausstellung-hamburg">
+          <button type="button" class="showroom-card" data-showroom="Hamburg" data-region="Region Hamburg" data-booking="TODO-zoho-bookings-link-hamburg">
             <span class="showroom-info">
               <span class="showroom-name">Hamburg</span>
               <span class="showroom-region">Region Hamburg</span>
@@ -873,7 +873,7 @@
 </div>
 
 <!-- ============================================================
-     Termin-Modal — Schritt 1: HubSpot-Pre-Form, Schritt 2: Meeting-iframe
+     Termin-Modal — Zoho-Bookings-Kalender des gewählten Showrooms (iframe)
      ============================================================ -->
 <div class="termin-modal" id="termin-modal" role="dialog" aria-modal="true" aria-labelledby="termin-modal-title" hidden>
   <div class="termin-modal-backdrop" data-action="close-modal" aria-hidden="true"></div>
@@ -882,10 +882,10 @@
     <div class="termin-modal-head">
       <p class="termin-modal-eyebrow" id="termin-modal-eyebrow">Showroom</p>
       <h3 class="termin-modal-title" id="termin-modal-title">Termin anfragen</h3>
-      <p class="termin-modal-sub" id="termin-modal-sub">Bitte tragen Sie zuerst Ihre Kontaktdaten ein. Danach wählen Sie Ihren Wunschtermin.</p>
+      <p class="termin-modal-sub" id="termin-modal-sub">Wählen Sie im Kalender Ihren Wunschtermin und tragen Sie danach Ihre Kontaktdaten ein.</p>
     </div>
     <div class="termin-modal-body" id="termin-modal-body">
-      <!-- HubSpot-Form-Embed wird hier per JS injiziert; nach Submit ersetzt durch Meeting-iframe -->
+      <!-- Zoho-Bookings-iframe wird hier per JS injiziert (app.js → openTerminModal) -->
     </div>
   </div>
 </div>

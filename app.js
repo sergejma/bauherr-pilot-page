@@ -3,7 +3,8 @@
    - Smooth-Scroll (vom Browser via CSS; hier nur Header-Offset-Korrektur)
    - FAQ-Akkordeon
    - Sticky-CTA-Bar (Mobile, ab Block 02 sichtbar)
-   - CTA-Klick-Tracking (Datenattribut → später Pixel/GA4)
+   - CTA-Klick-Tracking (Datenattribut → GA4)
+   - Termin-Modal mit Zoho-Bookings-Kalender + Buchungs-Conversion via danke.html
    ============================================================ */
 
 (() => {
@@ -70,25 +71,9 @@
     window.gtag('config', GA_ID, { anonymize_ip: true });
   }
 
-  // ---------- HubSpot Tracking (consent-gated) ----------
-  let hubspotLoaded = false;
-
-  function loadHubSpotTracking() {
-    if (hubspotLoaded) return;
-    hubspotLoaded = true;
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.id = 'hs-script-loader';
-    script.async = true;
-    script.defer = true;
-    script.src = '//js-eu1.hs-scripts.com/25504893.js';
-    document.head.appendChild(script);
-  }
-
   function loadConsentedTrackers() {
+    // HubSpot-Tracking entfiel mit dem CRM-Wechsel zu Zoho (Sept. 2026).
     loadGoogleAnalytics();
-    loadHubSpotTracking();
   }
 
   // ---------- DSGVO Cookie-Banner ----------
@@ -121,11 +106,10 @@
   }
 
   // ---------- Attribution-Persistenz (UTM / Click-IDs) ----------
-  // Wir puffern Marketing-Params beim ersten Visit in localStorage. Vor dem
-  // Öffnen des Termin-Modals stellen wir sie via history.replaceState in der
-  // URL wieder her — HubSpots Hidden-Fields lesen ihre Defaults aus
-  // window.location.search beim Form-Render, also muss die URL zur Render-Zeit
-  // die UTMs tragen, sonst landen Submits ohne Attribution im CRM.
+  // Marketing-Params beim ersten Visit in localStorage puffern. Beim Öffnen des
+  // Zoho-Bookings-Kalenders hängen wir sie an die Booking-URL: Zoho Bookings
+  // liest utm_* und gclid aus seiner eigenen URL und reicht sie an die
+  // GA4-Integration sowie an die Bestätigungsseite (danke.html) weiter.
   const ATTRIBUTION_STORAGE_KEY = 'spa_utm';
   const ATTRIBUTION_KEYS = [
     'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
@@ -142,34 +126,35 @@
     return out;
   }
 
+  function loadStoredAttribution() {
+    try {
+      return JSON.parse(localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
   const attributionFromUrl = extractAttribution(window.location.search);
   if (Object.keys(attributionFromUrl).length) {
-    // URL hat Attribution → speichern, sodass spätere Re-Visits sie behalten.
     try {
       localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(attributionFromUrl));
     } catch (e) { /* private mode */ }
-  } else {
-    // URL ohne Attribution, localStorage hat aber welche → URL still
-    // restaurieren, damit die HubSpot-Form-Hidden-Fields sie picken können.
-    try {
-      const stored = JSON.parse(localStorage.getItem(ATTRIBUTION_STORAGE_KEY) || '{}');
-      if (Object.keys(stored).length) {
-        const restored = new URLSearchParams(window.location.search);
-        Object.entries(stored).forEach(([k, v]) => {
-          if (!restored.has(k)) restored.set(k, v);
-        });
-        const qs = restored.toString();
-        if (qs) {
-          history.replaceState(null, '', window.location.pathname + '?' + qs + window.location.hash);
-        }
-      }
-    } catch (e) { /* private mode oder invalid JSON */ }
   }
 
-  // ---------- Termin-Modal: HubSpot Pre-Form → Meeting-iframe ----------
-  const HUBSPOT_FORM_PORTAL_ID = '25504893';
-  const HUBSPOT_FORM_REGION = 'eu1';
-  const HUBSPOT_FORM_ID = '73be52e0-7657-4c38-b638-b864dc33107e';
+  function currentAttribution() {
+    // Aktuelle URL schlägt gespeicherte Werte (neuer Ad-Klick gewinnt).
+    return Object.assign({}, loadStoredAttribution(), attributionFromUrl);
+  }
+
+  // ---------- Termin-Modal: Zoho Bookings ----------
+  // Ablauf: Showroom-Karte → Modal mit Zoho-Bookings-Kalender (iframe).
+  // Kontaktdaten erfasst Zoho Bookings selbst, ein Pre-Form ist nicht mehr nötig.
+  // Nach der Buchung leitet Zoho Bookings (Einstellung „Eigene Bestätigungsseite")
+  // innerhalb des iframes auf danke.html weiter. Die Seite ist same-origin und
+  // meldet die Buchung per postMessage an diese Seite → GA4-Event + Erfolgs-UI.
+  const PHONE_DISPLAY = '02597 4753015';
+  const PHONE_TEL = 'tel:+4925974753015';
+  const BOOKING_CONFIRMED_MESSAGE = 'spa:booking-confirmed';
 
   const terminModal = document.getElementById('termin-modal');
   const terminModalBody = document.getElementById('termin-modal-body');
@@ -177,200 +162,133 @@
   const terminModalTitle = document.getElementById('termin-modal-title');
   const terminModalSub = document.getElementById('termin-modal-sub');
 
-  let currentMeetingUrl = '';
   let currentShowroomName = '';
+  let bookingConfirmed = false;
 
-  function openTerminModal(meetingUrl, showroomName, regionLabel) {
-    currentMeetingUrl = meetingUrl;
+  function isUsableBookingUrl(url) {
+    return typeof url === 'string' && /^https?:\/\//i.test(url);
+  }
+
+  function buildBookingUrl(baseUrl) {
+    // Zoho-Bookings-URLs sind Hash-Router-URLs (…/#/workspace/service).
+    // Prefill- und UTM-Parameter gehören HINTER den Hash-Pfad, sonst sieht die
+    // Bookings-App sie nicht.
+    const params = new URLSearchParams();
+    Object.entries(currentAttribution()).forEach(([k, v]) => params.set(k, v));
+    const qs = params.toString();
+    if (!qs) return baseUrl;
+
+    const hashIdx = baseUrl.indexOf('#');
+    if (hashIdx === -1) {
+      return baseUrl + (baseUrl.includes('?') ? '&' : '?') + qs;
+    }
+    const before = baseUrl.slice(0, hashIdx);
+    const hash = baseUrl.slice(hashIdx);
+    return before + hash + (hash.includes('?') ? '&' : '?') + qs;
+  }
+
+  function renderBookingFallback(showroomName) {
+    terminModalBody.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'termin-modal-loading termin-modal-fallback';
+    p.innerHTML =
+      'Der Online-Kalender für ' + showroomName + ' ist gerade nicht erreichbar. ' +
+      'Rufen Sie uns direkt an: <a href="' + PHONE_TEL + '">' + PHONE_DISPLAY + '</a>';
+    terminModalBody.appendChild(p);
+  }
+
+  function openTerminModal(bookingUrl, showroomName, regionLabel) {
     currentShowroomName = showroomName;
+    bookingConfirmed = false;
 
     terminModalEyebrow.textContent = regionLabel || 'Showroom';
     terminModalTitle.textContent = 'Termin im Showroom ' + showroomName;
-    terminModalSub.textContent = 'Bitte tragen Sie zuerst Ihre Kontaktdaten ein. Danach wählen Sie Ihren Wunschtermin.';
+    terminModalSub.textContent = 'Wählen Sie im Kalender Ihren Wunschtermin und tragen Sie danach Ihre Kontaktdaten ein.';
     terminModalSub.hidden = false;
+    terminModal.classList.add('termin-modal--meeting');
+    terminModal.hidden = false;
+    document.body.classList.add('modal-open');
 
-    // Form-Container per DOM-API anhängen — HubSpots V3-Embed erkennt
-    // .hs-form-frame-Divs nur zuverlässig, wenn sie per appendChild/insertBefore
-    // in den DOM kommen. innerHTML-Injection wird vom Scanner übersehen → leer.
+    if (!isUsableBookingUrl(bookingUrl)) {
+      if (window.console) console.warn('[Termin] Keine gültige Zoho-Bookings-URL für', showroomName);
+      renderBookingFallback(showroomName);
+      return;
+    }
+
+    const url = buildBookingUrl(bookingUrl);
     terminModalBody.innerHTML = '';
 
     const loading = document.createElement('div');
     loading.className = 'termin-modal-loading';
-    loading.textContent = 'Formular lädt …';
+    loading.textContent = 'Kalender lädt …';
     terminModalBody.appendChild(loading);
 
-    const frame = document.createElement('div');
-    frame.className = 'hs-form-frame';
-    frame.setAttribute('data-region', HUBSPOT_FORM_REGION);
-    frame.setAttribute('data-form-id', HUBSPOT_FORM_ID);
-    frame.setAttribute('data-portal-id', HUBSPOT_FORM_PORTAL_ID);
+    const iframe = document.createElement('iframe');
+    iframe.src = url;
+    iframe.title = 'Terminkalender ' + showroomName;
+    iframe.setAttribute('loading', 'eager');
+    iframe.setAttribute('allow', 'payment');
+    iframe.addEventListener('load', () => loading.remove(), { once: true });
+    terminModalBody.appendChild(iframe);
 
-    // V3-Embed feuert CustomEvents auf dem Frame (kein window.postMessage mehr).
-    // Listener vor appendChild registrieren, damit kein Race-Risiko bleibt.
-    frame.addEventListener('hs-form-event:on-submission:success', async (ev) => {
-      // Snapshot der Modul-State synchron beim Submit-Event — verhindert
-      // Race, falls User während des await die Modal schließt (würde sonst
-      // currentMeetingUrl auf '' setzen und den Redirect zu relativem '?…'
-      // navigieren lassen, sprich auf bauherren statt vertrieb).
-      const meetingUrlSnapshot = currentMeetingUrl;
-      const showroomNameSnapshot = currentShowroomName;
-
-      const detail = ev.detail || {};
-      const values = {};
-      try {
-        const api = window.HubspotFormsV4;
-        if (api && typeof api.getForms === 'function') {
-          const forms = api.getForms();
-          const form = forms.find((f) => typeof f.getFormId === 'function' && f.getFormId() === detail.formId);
-          if (form && typeof form.getFormFieldValues === 'function') {
-            const fieldValues = await form.getFormFieldValues();
-            if (Array.isArray(fieldValues)) {
-              fieldValues.forEach((fv) => { if (fv && fv.name) values[fv.name] = fv.value; });
-            } else if (fieldValues && typeof fieldValues === 'object') {
-              Object.assign(values, fieldValues);
-            }
-          }
-        }
-      } catch (err) {
-        if (window.console) console.warn('[Termin] HubSpot getFormFieldValues failed:', err);
-      }
-
-      if (window.gtag) {
-        window.gtag('event', 'form_submit', {
-          event_category: 'termin',
-          event_label: showroomNameSnapshot,
-        });
-      }
-
-      // Zwischen-Status, damit User nicht hängen sieht während wir warten
-      terminModalBody.innerHTML =
-        '<p class="termin-modal-loading">Termin wird vorbereitet …</p>';
-
-      // 1.5s Delay: HubSpot setzt nach Form-Submit den hubspotutk-Contact-Cookie
-      // asynchron. Wenn wir den Meeting-iframe sofort laden, kennt HubSpot den
-      // Kontakt noch nicht und der Pre-Fill schlägt fehl. Diese Pause lässt die
-      // Tracking-Pipeline ihre Cookie-Schreibvorgänge abschließen.
-      setTimeout(() => {
-        showMeetingIframe(values, meetingUrlSnapshot, showroomNameSnapshot);
-      }, 1500);
-    });
-
-    terminModalBody.appendChild(frame);
-
-    // Loader entfernen, sobald HubSpot das Form rendert (form-Tag oder iframe erscheint)
-    const obs = new MutationObserver(() => {
-      if (frame.querySelector('form, iframe')) {
-        loading.remove();
-        obs.disconnect();
-      }
-    });
-    obs.observe(frame, { childList: true, subtree: true });
-
-    terminModal.classList.remove('termin-modal--meeting');
-    terminModal.hidden = false;
-    document.body.classList.add('modal-open');
+    // Fallback für WebViews (Instagram/Facebook), in denen iframes gelegentlich
+    // leer bleiben: derselbe Kalender in einem neuen Tab, inkl. Attribution.
+    const foot = document.createElement('p');
+    foot.className = 'termin-modal-foot';
+    foot.innerHTML =
+      'Kalender wird nicht angezeigt? <a href="' + url + '" target="_blank" rel="noopener">In neuem Tab öffnen</a>' +
+      ' · oder anrufen: <a href="' + PHONE_TEL + '">' + PHONE_DISPLAY + '</a>';
+    terminModalBody.appendChild(foot);
   }
 
-  function showMeetingIframe(submissionValues, meetingUrl, showroomName) {
-    meetingUrl = meetingUrl || currentMeetingUrl;
-    showroomName = showroomName || currentShowroomName;
-    if (!meetingUrl) {
-      // Keine URL → User sieht eine sichtbare Fehlermeldung statt der hängenden
-      // HubSpot-Thank-You-Message, damit klar ist, dass was schief lief.
-      terminModalBody.innerHTML =
-        '<p class="termin-modal-loading">Termin-URL nicht verfügbar — bitte Modal schließen und Showroom erneut auswählen.</p>';
-      if (window.console) console.warn('[Termin] showMeetingIframe: meetingUrl leer');
-      return;
-    }
+  function showBookingConfirmed(detail) {
+    if (bookingConfirmed) return;
+    bookingConfirmed = true;
 
-    // Tolerantes Field-Lookup: HubSpot kann Property-Namen mit/ohne Underscore,
-    // Camel- oder lowercase liefern — wir akzeptieren alle gängigen Varianten.
-    const lowerMap = {};
-    if (submissionValues && typeof submissionValues === 'object') {
-      Object.keys(submissionValues).forEach((k) => {
-        const v = submissionValues[k];
-        if (v) lowerMap[k.toLowerCase()] = v;
+    const showroom = currentShowroomName || (detail && detail.showroom) || '';
+
+    // danke.html im iframe trägt die eigentliche Bestätigung — Modal-Kopf nur
+    // noch als knappe Statuszeile, sonst steht die Botschaft doppelt da.
+    terminModalTitle.textContent = 'Termin bestätigt';
+    terminModalSub.hidden = true;
+    const foot = terminModalBody.querySelector('.termin-modal-foot');
+    if (foot) foot.remove();
+
+    if (window.gtag) {
+      window.gtag('event', 'termin_gebucht', {
+        event_category: 'termin',
+        event_label: showroom,
+        booking_id: (detail && detail.booking_id) || undefined,
+        service_name: (detail && detail.service_name) || undefined,
       });
     }
-    const findValue = (candidates) => {
-      for (const c of candidates) {
-        const hit = lowerMap[c.toLowerCase()];
-        if (hit) return hit;
-      }
-      return '';
-    };
-
-    const firstName = findValue(['firstname', 'first_name', 'firstName']);
-    const lastName = findValue(['lastname', 'last_name', 'lastName']);
-    const email = findValue(['email', 'email_address', 'emailaddress']);
-    const phone = findValue(['phone', 'phonenumber', 'phone_number', 'mobilephone']);
-
-    // HubSpot-Meetings akzeptiert für Pre-Fill verschiedene Param-Schreibweisen.
-    // Desktop-Widget normalisiert sie, Mobile-Widget ist strenger — daher
-    // mehrere Varianten parallel mitgeben, damit irgendeine greift.
-    const params = new URLSearchParams({ embed: 'true' });
-    if (firstName) {
-      params.set('firstName', firstName);
-      params.set('firstname', firstName);
-      params.set('first_name', firstName);
-    }
-    if (lastName) {
-      params.set('lastName', lastName);
-      params.set('lastname', lastName);
-      params.set('last_name', lastName);
-    }
-    if (email) {
-      params.set('email', email);
-      params.set('email_address', email);
-    }
-    if (phone) {
-      params.set('phone', phone);
-      params.set('phonenumber', phone);
-      params.set('phone_number', phone);
-      params.set('mobilephone', phone);
-    }
-
-    // Pre-Fill für native HubSpot-Source-Props auf der Meeting-Seite
-    ATTRIBUTION_KEYS.forEach((k) => {
-      const v = lowerMap[k.toLowerCase()];
-      if (v) params.set(k, v);
-    });
-
-    const url = meetingUrl + '?' + params.toString();
-
-    // Hinweis: HubSpots Mobile-Meetings-Widget honoriert die URL-Pre-Fill-Params
-    // nicht — verifiziert via Live-Test auf iOS Safari, sowohl im iframe als
-    // auch bei Top-Level-Navigation zur Meeting-Page. Akzeptierte Limitierung:
-    // Mobile-User muss die 4 Felder im Kalender nochmal eingeben. HubSpot
-    // dedupliziert via E-Mail, der Lead aus dem Pre-Form bleibt erhalten.
-
-    terminModalEyebrow.textContent = showroomName;
-    terminModalTitle.textContent = 'Wunschtermin wählen';
-    terminModalSub.hidden = true;
-    terminModal.classList.add('termin-modal--meeting');
-
-    terminModalBody.innerHTML =
-      '<iframe src="' + url + '" title="Terminkalender ' + showroomName +
-      '" height="720" loading="lazy"></iframe>';
   }
+
+  // danke.html (same-origin, im iframe) meldet die abgeschlossene Buchung.
+  window.addEventListener('message', (e) => {
+    if (e.origin !== window.location.origin) return;
+    const data = e.data;
+    if (!data || data.type !== BOOKING_CONFIRMED_MESSAGE) return;
+    if (terminModal.hidden) return;
+    showBookingConfirmed(data);
+  });
 
   function closeTerminModal() {
     terminModal.hidden = true;
     terminModal.classList.remove('termin-modal--meeting');
     terminModalBody.innerHTML = '';
     document.body.classList.remove('modal-open');
-    currentMeetingUrl = '';
     currentShowroomName = '';
+    bookingConfirmed = false;
   }
 
   document.querySelectorAll('.showroom-card').forEach((card) => {
     card.addEventListener('click', () => {
-      const meetingUrl = card.dataset.meeting;
+      const bookingUrl = card.dataset.booking;
       const showroomName = card.dataset.showroom;
       const regionLabel = card.dataset.region;
-      if (!meetingUrl) return;
 
-      openTerminModal(meetingUrl, showroomName, regionLabel);
+      openTerminModal(bookingUrl, showroomName, regionLabel);
 
       if (window.gtag) {
         window.gtag('event', 'showroom_selected', {

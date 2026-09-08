@@ -1,0 +1,206 @@
+// ============================================================================
+// Zoho Bookings → Zoho CRM: Ausstellungstermin von der Bauherren-Landingpage
+// als Lead attribuieren.
+//
+// Wo einrichten:  Zoho Bookings → Admin Center → Workspace → Custom Functions
+//                 → Trigger „Appointment booked" (zusätzlich empfohlen:
+//                 „Rescheduled" und „Canceled", siehe Abschnitt B unten).
+// Voraussetzung:  Eine Zoho-CRM-Connection in Bookings anlegen und ihren
+//                 Link-Namen unten in CRM_CONNECTION eintragen.
+//                 Scopes: ZohoCRM.modules.leads.ALL, ZohoCRM.modules.contacts.READ
+// Status:         ENTWURF — von Claude erstellt, noch nicht im Live-System
+//                 getestet. Vor dem Aktivieren mit einer Test-Buchung prüfen.
+//
+// Was die Funktion tut:
+//   1. Ermittelt Showroom + Termin aus bookingInfo.
+//   2. Sucht den Lead per E-Mail (Fallback: Telefon).
+//      - gefunden  → Termin-Felder setzen, Lead-Quelle NICHT überschreiben
+//                    (Erstquelle bleibt erhalten; Termin nur als Ereignis).
+//      - nicht gefunden, aber Contact vorhanden → nur Notiz am Contact.
+//      - nichts gefunden → neuer Lead mit Lead_Source „Lead: Bauherren".
+//   3. Schreibt Termintyp/Termindatum/Termin_Status/Filiale/Territory.
+//
+// Warum nicht die Standard-Integration allein? Sie legt Lead + Meeting an,
+// kann aber weder Lead-Quelle noch Filiale/Termin-Felder setzen und mappt
+// Custom Fields nur ins Meetings-Modul. Diese Funktion ergänzt sie.
+// ============================================================================
+
+CRM_CONNECTION = "zohocrm";                 // Link-Name der Connection in Bookings
+LEAD_SOURCE_LP  = "Lead: Bauherren";        // existiert bereits als Picklist-Wert
+
+// Nur Services der Bauherren-Landingpage attribuieren. Wenn die LP eigene
+// Services/Workspaces bekommt (Empfehlung!), hier deren service_id eintragen.
+// Leer lassen = jede Buchung, deren Service-Name einen Showroom enthält.
+LP_SERVICE_IDS = List();
+// LP_SERVICE_IDS.add("123456789012345678");
+
+// ---------------------------------------------------------------------------
+// A) Daten aus der Buchung
+// ---------------------------------------------------------------------------
+bookingId     = ifnull(bookingInfo.get("booking_id"), "");
+serviceId     = ifnull(bookingInfo.get("service_id"), "").toString();
+serviceName   = ifnull(bookingInfo.get("service_name"), "");
+workspaceName = ifnull(bookingInfo.get("workspace_name"), "");
+staffName     = ifnull(bookingInfo.get("staff_name"), "");
+email         = ifnull(bookingInfo.get("customer_email"), "").trim();
+phone         = ifnull(bookingInfo.get("customer_contact_no"), "").trim();
+firstName     = ifnull(bookingInfo.get("customer_first_name"), "");
+lastName      = ifnull(bookingInfo.get("customer_last_name"), "");
+fullName      = ifnull(bookingInfo.get("customer_name"), "");
+isoStart      = ifnull(bookingInfo.get("iso_start_time"), "");
+summaryUrl    = ifnull(bookingInfo.get("summary_url"), "");
+moreInfo      = bookingInfo.get("customer_more_info");   // Map der Custom Fields
+
+if (LP_SERVICE_IDS.size() > 0 && !LP_SERVICE_IDS.contains(serviceId))
+{
+    info "Service " + serviceId + " gehört nicht zur Bauherren-LP – übersprungen.";
+    return;
+}
+if (email == "" && phone == "")
+{
+    info "Buchung " + bookingId + " ohne E-Mail/Telefon – kein CRM-Abgleich möglich.";
+    return;
+}
+
+// Showroom aus Service-/Workspace-Name; Mapping auf Territory-Picklist im CRM.
+// ACHTUNG: Ludwigsburg → „Esslingen" ist eine Annahme (Territory-Liste hat
+// kein Ludwigsburg). Bitte verifizieren.
+showroomMap = Map();
+showroomMap.put("nürnberg",     {"filiale":"Nürnberg",    "territory":"Nürnberg"});
+showroomMap.put("nuernberg",    {"filiale":"Nürnberg",    "territory":"Nürnberg"});
+showroomMap.put("münchen",      {"filiale":"München",     "territory":"Unterhaching"});
+showroomMap.put("munchen",      {"filiale":"München",     "territory":"Unterhaching"});
+showroomMap.put("unterhaching", {"filiale":"München",     "territory":"Unterhaching"});
+showroomMap.put("ludwigsburg",  {"filiale":"Ludwigsburg", "territory":"Esslingen"});
+showroomMap.put("rüsselsheim",  {"filiale":"Rüsselsheim", "territory":"Rüsselsheim"});
+showroomMap.put("ruesselsheim", {"filiale":"Rüsselsheim", "territory":"Rüsselsheim"});
+showroomMap.put("senden",       {"filiale":"Senden",      "territory":"Senden"});
+showroomMap.put("hamburg",      {"filiale":"Hamburg",     "territory":"Hamburg"});
+
+haystack = (serviceName + " " + workspaceName).toLowerCase();
+filiale = "";
+territory = "";
+for each key in showroomMap.keys()
+{
+    if (haystack.contains(key))
+    {
+        filiale = showroomMap.get(key).get("filiale");
+        territory = showroomMap.get(key).get("territory");
+        break;
+    }
+}
+
+// Termindatum: iso_start_time → CRM-Datetime (yyyy-MM-dd'T'HH:mm:ss+01:00)
+terminDatum = "";
+if (isoStart != "")
+{
+    try
+    {
+        terminDatum = isoStart.toTime().toString("yyyy-MM-dd'T'HH:mm:ssXXX");
+    }
+    catch (e)
+    {
+        info "Startzeit nicht parsebar: " + isoStart;
+    }
+}
+
+notiz = "Ausstellungstermin online gebucht über bauherren.spadeluxe.de (Zoho Bookings " + bookingId + ")."
+      + ifnull(" Showroom: " + filiale, "")
+      + ifnull(" Berater: " + staffName, "")
+      + ifnull(" Start: " + isoStart, "")
+      + ifnull(" Buchung: " + summaryUrl, "");
+
+// ---------------------------------------------------------------------------
+// B) Lead suchen (E-Mail zuerst, dann Telefon) – inkl. konvertierter Leads
+// ---------------------------------------------------------------------------
+leads = List();
+if (email != "")
+{
+    leads = zoho.crm.searchRecords("Leads", "(Email:equals:" + email + ")", 1, 5, CRM_CONNECTION);
+}
+if (leads.size() == 0 && phone != "")
+{
+    leads = zoho.crm.searchRecords("Leads", "((Phone:equals:" + phone + ")or(Mobile:equals:" + phone + "))", 1, 5, CRM_CONNECTION);
+}
+
+updateMap = Map();
+updateMap.put("Termintyp", "Showroom");
+updateMap.put("Termin_Status", "Vereinbart");
+if (terminDatum != "") { updateMap.put("Termindatum", terminDatum); }
+if (filiale != "")     { updateMap.put("Filiale", filiale); }
+if (territory != "")   { updateMap.put("Territory", territory); }
+
+if (leads.size() > 0)
+{
+    lead = leads.get(0);
+    leadId = lead.get("id");
+
+    // Lead-Quelle nur setzen, wenn leer – Erstquelle (z. B. Meta-Kampagne) bleibt.
+    if (ifnull(lead.get("Lead_Source"), "") == "" || lead.get("Lead_Source") == "-None-")
+    {
+        updateMap.put("Lead_Source", LEAD_SOURCE_LP);
+    }
+    // Optional: Termin-Interesse als Signal für Lead_Tier
+    // updateMap.put("Lead_Tier", "Hot");
+
+    upd = zoho.crm.updateRecord("Leads", leadId, updateMap, Map(), CRM_CONNECTION);
+    info "Lead aktualisiert: " + leadId + " → " + upd;
+
+    noteMap = Map();
+    noteMap.put("Parent_Id", leadId);
+    noteMap.put("se_module", "Leads");
+    noteMap.put("Note_Title", "Ausstellungstermin gebucht (Bauherren-LP)");
+    noteMap.put("Note_Content", notiz);
+    zoho.crm.createRecord("Notes", noteMap, Map(), CRM_CONNECTION);
+    return;
+}
+
+// Kein Lead → Bestandskunde als Contact?
+contacts = List();
+if (email != "")
+{
+    contacts = zoho.crm.searchRecords("Contacts", "(Email:equals:" + email + ")", 1, 5, CRM_CONNECTION);
+}
+if (contacts.size() > 0)
+{
+    contactId = contacts.get(0).get("id");
+    noteMap = Map();
+    noteMap.put("Parent_Id", contactId);
+    noteMap.put("se_module", "Contacts");
+    noteMap.put("Note_Title", "Ausstellungstermin gebucht (Bauherren-LP)");
+    noteMap.put("Note_Content", notiz);
+    zoho.crm.createRecord("Notes", noteMap, Map(), CRM_CONNECTION);
+    info "Bestandskontakt " + contactId + " – Notiz angelegt, kein neuer Lead.";
+    return;
+}
+
+// ---------------------------------------------------------------------------
+// C) Neuer Lead
+// ---------------------------------------------------------------------------
+newLead = Map();
+if (lastName == "" && firstName == "")
+{
+    lastName = ifnull(fullName, "Unbekannt");
+}
+if (lastName == "") { lastName = firstName; firstName = ""; }
+newLead.put("Last_Name", lastName);
+if (firstName != "") { newLead.put("First_Name", firstName); }
+if (email != "")     { newLead.put("Email", email); }
+if (phone != "")     { newLead.put("Phone", phone); }
+newLead.put("Lead_Source", LEAD_SOURCE_LP);
+newLead.put("Lead_Status", "Neu");
+newLead.put("Description", notiz);
+newLead.putAll(updateMap);
+
+created = zoho.crm.createRecord("Leads", newLead, Map(), CRM_CONNECTION);
+info "Neuer Lead angelegt: " + created;
+
+// ---------------------------------------------------------------------------
+// Hinweise
+// ---------------------------------------------------------------------------
+// - Für Trigger „Rescheduled": nur Termindatum neu setzen, Termin_Status „Verschoben".
+// - Für Trigger „Canceled":   Termin_Status „Abgesagt".
+// - Für Trigger „No Show":    Termin_Status „Nicht erschienen".
+// - UTMs stehen NICHT in bookingInfo (Zoho-Doku). Wenn utm_* in den Lead
+//   sollen, greift Stufe 3 aus dem README: danke.html → Zoho-Flow-Webhook →
+//   Lead-Update über booking_id/E-Mail.

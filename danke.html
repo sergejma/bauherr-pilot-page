@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1A1A1A" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Termin gebucht · SPA Deluxe</title>
+
+  <!--
+    Bestätigungsseite für Zoho Bookings.
+    In Zoho Bookings (Workspace → Policies & Preferences → „Show your own
+    confirmation page") als Redirect-URL eintragen und „Pass booking details
+    to confirmation page" aktivieren. Zoho hängt dann u. a. an:
+      booking_id, service_name, assigned_to, booking_start_time,
+      customer_first_name, customer_email, workspace_name, utm_*
+    Zwei Betriebsarten:
+      1) Im iframe des Termin-Modals auf bauherren.spadeluxe.de → meldet die
+         Buchung per postMessage an die Landing Page (GA4-Event dort).
+      2) Als eigenständige Seite (Kalender im neuen Tab geöffnet) → zeigt die
+         Bestätigung und feuert das GA4-Event selbst (consent-gated).
+  -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .danke {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-cream, #F6F1E8);
+    }
+    .danke-header {
+      background: var(--color-ink, #1A1A1A);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .danke-header img { height: 26px; width: auto; display: block; }
+    .danke-header a.phone {
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .danke-main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px 56px;
+    }
+    .danke-card {
+      width: 100%;
+      max-width: 640px;
+    }
+    .danke-eyebrow {
+      margin: 0 0 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-stone, #7A756C);
+    }
+    .danke h1 {
+      margin: 0 0 12px;
+      font-size: clamp(26px, 4vw, 34px);
+      line-height: 1.15;
+      color: var(--color-ink, #1A1A1A);
+    }
+    .danke .lead {
+      margin: 0 0 24px;
+      font-size: 17px;
+      line-height: 1.55;
+      color: var(--color-ink, #1A1A1A);
+    }
+    .danke-details {
+      list-style: none;
+      margin: 0 0 24px;
+      padding: 0;
+      border: 1px solid var(--color-sand, #E5DCCB);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .danke-details li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-sand, #E5DCCB);
+      font-size: 15px;
+    }
+    .danke-details li:last-child { border-bottom: 0; }
+    .danke-details .k { color: var(--color-stone, #7A756C); }
+    .danke-details .v { font-weight: 600; text-align: right; }
+    .danke-details[hidden] { display: none; }
+    .danke-next {
+      margin: 0 0 28px;
+      padding: 14px 16px;
+      background: var(--color-action-bg, #FDEDE5);
+      border-left: 3px solid var(--color-action, #E8551A);
+      border-radius: 4px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .danke-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .danke-actions .btn { text-decoration: none; }
+    .danke-actions .back {
+      font-size: 14px;
+      color: var(--color-stone, #7A756C);
+      text-decoration: underline;
+    }
+    /* Im iframe des Modals: kompakter, ohne eigenen Header/Zurück-Link */
+    html.embedded .danke-header,
+    html.embedded .danke-actions .back { display: none; }
+    html.embedded .danke-main { padding: 12px 4px 24px; }
+  </style>
+</head>
+<body class="danke">
+
+  <header class="danke-header">
+    <a href="./" aria-label="Zur Bauherren-Seite">
+      <img src="assets/logo-white.png" alt="SPA Deluxe" width="120" height="26" />
+    </a>
+    <a class="phone" href="tel:+4925974753015">02597 4753015</a>
+  </header>
+
+  <main class="danke-main">
+    <div class="danke-card">
+      <p class="danke-eyebrow" id="danke-eyebrow">Termin bestätigt</p>
+      <h1 id="danke-title">Ihr Termin ist gebucht.</h1>
+      <p class="lead" id="danke-lead">
+        Vielen Dank. Sie erhalten in wenigen Minuten eine Bestätigung per E-Mail
+        mit allen Details und der Anfahrt zum Showroom.
+      </p>
+
+      <ul class="danke-details" id="danke-details" hidden>
+        <li id="row-service" hidden><span class="k">Termin</span><span class="v" id="val-service"></span></li>
+        <li id="row-start" hidden><span class="k">Wann</span><span class="v" id="val-start"></span></li>
+        <li id="row-staff" hidden><span class="k">Ihr Berater</span><span class="v" id="val-staff"></span></li>
+        <li id="row-id" hidden><span class="k">Buchungs-Nr.</span><span class="v" id="val-id"></span></li>
+      </ul>
+
+      <p class="danke-next">
+        Bringen Sie gern Ihren Gartenplan oder ein paar Fotos mit. Wir nehmen
+        uns 60–90 Minuten Zeit, damit Sie den Whirlpool für Ihre Familie
+        wirklich erleben können.
+      </p>
+
+      <div class="danke-actions">
+        <a class="btn btn-primary" href="tel:+4925974753015">Fragen? Direkt anrufen</a>
+        <a class="back" href="./">Zurück zur Seite</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // Optional (Stufe 3 im README): Zoho-Flow-Webhook, der utm_* + booking_id
+      // in den CRM-Lead schreibt. Leer lassen = deaktiviert.
+      const ZOHO_FLOW_WEBHOOK = '';
+
+      const GA_ID = 'G-1TQQ5LLNJF';
+      const q = new URLSearchParams(window.location.search);
+      const get = (k) => (q.get(k) || '').trim();
+
+      const bookingId = get('booking_id');
+      const serviceName = get('service_name');
+      const staff = get('assigned_to');
+      const workspace = get('workspace_name');
+      const firstName = get('customer_first_name') || get('customer_name');
+      const startRaw = get('booking_start_time');
+
+      // Showroom aus Service-/Workspace-Namen ableiten (z. B. „Ausstellung Nürnberg")
+      const SHOWROOMS = ['Nürnberg', 'München', 'Unterhaching', 'Ludwigsburg', 'Rüsselsheim', 'Senden', 'Hamburg'];
+      const haystack = (serviceName + ' ' + workspace).toLowerCase();
+      let showroom = SHOWROOMS.find((s) => haystack.includes(s.toLowerCase())) || '';
+      if (showroom === 'Unterhaching') showroom = 'München';
+
+      // --- UI füllen ---
+      const show = (rowId, valId, value) => {
+        if (!value) return false;
+        document.getElementById(valId).textContent = value;
+        document.getElementById(rowId).hidden = false;
+        return true;
+      };
+      let startPretty = startRaw;
+      if (startRaw) {
+        const d = new Date(startRaw);
+        if (!isNaN(d.getTime())) {
+          startPretty = d.toLocaleString('de-DE', {
+            weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+          }) + ' Uhr';
+        }
+      }
+      const any = [
+        show('row-service', 'val-service', serviceName),
+        show('row-start', 'val-start', startPretty),
+        show('row-staff', 'val-staff', staff),
+        show('row-id', 'val-id', bookingId),
+      ].some(Boolean);
+      if (any) document.getElementById('danke-details').hidden = false;
+      if (firstName) {
+        document.getElementById('danke-title').textContent = firstName + ', Ihr Termin ist gebucht.';
+      }
+      if (showroom) {
+        document.getElementById('danke-eyebrow').textContent = 'Termin bestätigt · Showroom ' + showroom;
+      }
+
+      const detail = {
+        type: 'spa:booking-confirmed',
+        booking_id: bookingId,
+        service_name: serviceName,
+        showroom: showroom,
+        start: startRaw,
+      };
+
+      // --- Betriebsart 1: im iframe des Termin-Modals ---
+      const embedded = window.parent && window.parent !== window;
+      if (embedded) {
+        document.documentElement.classList.add('embedded');
+        try {
+          window.parent.postMessage(detail, window.location.origin);
+        } catch (e) { /* fremdes Parent-Origin → kein Zugriff, kein Problem */ }
+      }
+
+      // --- Betriebsart 2: eigenständig geöffnet → GA4 selbst feuern (consent-gated) ---
+      if (!embedded) {
+        let consent = null;
+        try { consent = localStorage.getItem('cookie-consent'); } catch (e) { /* private mode */ }
+        if (consent === 'all') {
+          const s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function gtag() { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', GA_ID, { anonymize_ip: true });
+          window.gtag('event', 'termin_gebucht', {
+            event_category: 'termin',
+            event_label: showroom,
+            booking_id: bookingId || undefined,
+            service_name: serviceName || undefined,
+          });
+        }
+      }
+
+      // --- Optional: Attribution ins CRM (Zoho-Flow-Webhook) ---
+      if (ZOHO_FLOW_WEBHOOK && bookingId && navigator.sendBeacon) {
+        const payload = {
+          booking_id: bookingId,
+          customer_email: get('customer_email'),
+          showroom: showroom,
+          service_name: serviceName,
+          quelle: 'Lead: Bauherren',
+          landing_page: 'bauherren.spadeluxe.de',
+        };
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid'].forEach((k) => {
+          const v = get(k);
+          if (v) payload[k] = v;
+        });
+        try {
+          navigator.sendBeacon(ZOHO_FLOW_WEBHOOK, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+        } catch (e) { /* Beacon optional */ }
+      }
+    })();
+  </script>
+</body>
+</html>
